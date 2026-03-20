@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advertisement Success Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-weight: 300;
+            font-size: 2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .probability {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            display: none;
+        }
+
+        .info-text {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advertisement Success Prediction</h1>
+        
+        <p class="info-text">
+            Deployment: <strong>add</strong> | 
+            Serving Name: <strong>add</strong> | 
+            Endpoint: <strong>Private</strong>
+        </p>
+
+        <div class="info-text" style="background: #e3f2fd; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <strong>📊 Sample Data for Testing:</strong><br>
+            Daily Time: 68.95, Age: 35, Area Income: 61833.90, Daily Internet: 256.09<br>
+            Ad Topic: "Cloned 5thgeneration orchestration", City: "Wrightburgh"<br>
+            Gender: Male, Country: "Tunisia", Timestamp: "2016-03-27 00:53:11"
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="daily_time">Daily Time (minutes)</label>
+                <input type="number" id="daily_time" name="daily_time" step="0.01" placeholder="e.g., 68.95" required>
+            </div>
+
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" placeholder="e.g., 35" min="1" max="120" required>
+            </div>
+
+            <div class="form-group">
+                <label for="areaincome">Area Income ($)</label>
+                <input type="number" id="areaincome" name="areaincome" step="0.01" placeholder="e.g., 61833.90" required>
+            </div>
+
+            <div class="form-group">
+                <label for="dailyinternetuse">Daily Internet Use (minutes)</label>
+                <input type="number" id="dailyinternetuse" name="dailyinternetuse" step="0.01" placeholder="e.g., 256.09" required>
+            </div>
+
+            <div class="form-group">
+                <label for="adtopicline">Advertisement Topic Line</label>
+                <input type="text" id="adtopicline" name="adtopicline" placeholder="e.g., Cloned 5thgeneration orchestration" required>
+            </div>
+
+            <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city" placeholder="e.g., Wrightburgh" required>
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Country</label>
+                <input type="text" id="country" name="country" placeholder="e.g., Tunisia" required>
+            </div>
+
+            <div class="form-group">
+                <label for="timestamp">Timestamp</label>
+                <input type="text" id="timestamp" name="timestamp" placeholder="e.g., 2016-03-27 00:53:11" required>
+                <small style="color: #666; font-size: 0.8em;">Format: YYYY-MM-DD HH:MM:SS</small>
+            </div>
+
+            <button type="submit" class="btn">Predict</button>
+        </form>
+
+        <div class="loading" id="loading">
+            Making prediction...
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const submitBtn = document.querySelector('.btn');
+            
+            // Show loading
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            submitBtn.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                if (data.success) {
+                    result.className = 'result ' + (data.viewed_ad ? 'success' : 'info');
+                    let fallbackMessage = data.fallback ? '<p style="font-size: 0.9em; color: #666; margin-top: 10px;">⚠️ Using demo mode (API unavailable)</p>' : '';
+                    result.innerHTML = `
+                        <div class="probability">${data.probability}%</div>
+                        <div>${data.message}</div>
+                        ${fallbackMessage}
+                    `;
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = `<div>Error: ${data.error}</div>`;
+                }
+                
+                result.style.display = 'block';
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                result.className = 'result error';
+                result.innerHTML = `<div>Error: ${error.message}</div>`;
+                result.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

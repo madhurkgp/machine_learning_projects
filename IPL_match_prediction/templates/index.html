@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Win Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fafafa;
+            color: #111827;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            max-width: 42rem;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        select, input[type="number"] {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            color: #111827;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #111827;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .row-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #111827;
+            color: #f9fafb;
+            border: 1px solid #111827;
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        button:hover {
+            background: #1f2937;
+        }
+
+        button:active {
+            background: #111827;
+        }
+
+        .results {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .metric {
+            margin-bottom: 1rem;
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 640px) {
+            .row, .row-three {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IPL Win Predictor</h1>
+        <p class="subtitle">Enter match situation to see win probability.</p>
+
+        <form id="predictForm">
+            <div class="row">
+                <div class="form-group">
+                    <label for="batting_team">Batting team</label>
+                    <select id="batting_team" name="batting_team" required>
+                        <option value="">Select team</option>
+                        {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bowling_team">Bowling team</label>
+                    <select id="bowling_team" name="bowling_team" required>
+                        <option value="">Select team</option>
+                        {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="city">Venue</label>
+                <select id="city" name="city" required>
+                    <option value="">Select venue</option>
+                    {% for city in cities %}
+                    <option value="{{ city }}">{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="target">Target</label>
+                <input type="number" id="target" name="target" min="1" value="175" required>
+            </div>
+
+            <div class="row-three">
+                <div class="form-group">
+                    <label for="score">Current score</label>
+                    <input type="number" id="score" name="score" min="0" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="overs_done">Overs completed</label>
+                    <input type="text" id="overs_done" name="overs_done" inputmode="decimal" placeholder="e.g. 10.2" value="0.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="wickets_fallen">Wickets fallen</label>
+                    <input type="number" id="wickets_fallen" name="wickets_fallen" min="0" max="10" value="0" required>
+                </div>
+            </div>
+
+            <button type="submit">Predict probability</button>
+        </form>
+
+        <div class="error" id="error"></div>
+
+        <div class="results" id="results">
+            <h2>Win probability</h2>
+            <div class="metric">
+                <div class="metric-label" id="batting_label"></div>
+                <div class="metric-value" id="batting_prob"></div>
+            </div>
+            <div class="metric">
+                <div class="metric-label" id="bowling_label"></div>
+                <div class="metric-value" id="bowling_prob"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('error');
+            const resultsDiv = document.getElementById('results');
+            errorDiv.classList.remove('show');
+            resultsDiv.classList.remove('show');
+
+            const formData = {
+                batting_team: document.getElementById('batting_team').value,
+                bowling_team: document.getElementById('bowling_team').value,
+                city: document.getElementById('city').value,
+                target: document.getElementById('target').value,
+                score: document.getElementById('score').value,
+                overs_done: document.getElementById('overs_done').value,
+                wickets_fallen: document.getElementById('wickets_fallen').value,
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    errorDiv.textContent = data.error || 'An error occurred';
+                    errorDiv.classList.add('show');
+                    return;
+                }
+
+                if (data.success) {
+                    document.getElementById('batting_label').textContent = data.batting_team;
+                    document.getElementById('batting_prob').textContent = data.win_prob + '%';
+                    document.getElementById('bowling_label').textContent = data.bowling_team;
+                    document.getElementById('bowling_prob').textContent = data.loss_prob + '%';
+                    resultsDiv.classList.add('show');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error. Please try again.';
+                errorDiv.classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>

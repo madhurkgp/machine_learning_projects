@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Music Popularity Prediction</title>
+<style>
+body{
+    background-color: #ee5522;
+    background-image: linear-gradient(135deg, #ee5522 0%, #ff8c42 100%);
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+div.search {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto 15px;
+}
+
+input.searchTerm {
+    width: 100%;
+    border: 3px solid #00B4CC;
+    border-right: none;
+    padding: 12px;
+    height: 40px;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    color: #333;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input.searchTerm:focus{
+    color: #00B4CC;
+    border-color: #0086a3;
+}
+
+button.searchButton {
+    width: 100px;
+    height: 40px;
+    border: 1px solid #00B4CC;
+    background: #00B4CC;
+    text-align: center;
+    color: #fff;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: -1px;
+}
+
+button.searchButton:hover {
+    background: #0086a3;
+}
+
+div.wrap{
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.example-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.example-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.example-btn:hover {
+    background: #218838;
+}
+
+.example-btn.popular {
+    background: #007bff;
+}
+
+.example-btn.popular:hover {
+    background: #0056b3;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-top: 20px;
+    font-size: 24px;
+}
+
+h2:first-of-type {
+    margin-top: 0;
+    color: #ee5522;
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h2>Music Popularity Prediction</h2>
+  
+  <div class="example-buttons">
+    <p style="width: 100%; margin-bottom: 10px; font-size: 14px; color: #666;">
+      <strong>Quick Examples:</strong> Click to fill form with sample data:
+    </p>
+    <button type="button" class="example-btn" onclick="fillExample(0.78, 0.57, 240.5, -8.2, 0.45, 235.1, 120.3, 4, 0.95)">
+      Rock Song
+    </button>
+    <button type="button" class="example-btn" onclick="fillExample(0.65, 0.42, 180.2, -12.5, 0.38, 175.8, 95.7, 4, 0.88)">
+      Pop Song
+    </button>
+    <button type="button" class="example-btn popular" onclick="fillExample(0.92, 0.85, 210.8, -5.1, 0.78, 205.3, 128.9, 4, 0.99)">
+      Hit Song 
+    </button>
+    <button type="button" class="example-btn" onclick="fillExample(0.31, 0.18, 195.4, -15.3, 0.22, 190.7, 110.2, 3, 0.72)">
+      Indie Song
+    </button>
+  </div>
+
+  <form method="post" action="" enctype="multipart/form-data" id="predictionForm">
+    {% csrf_token %}
+   <div class="search">
+      <input name="artist_familiarity" id="artist_familiarity" type="number" step="0.001" class="searchTerm" placeholder="Artist Familiarity (0-1)">
+   </div>
+    <br>
+   <div class="search">
+      <input name="artist_hotness" id="artist_hotness" type="number" step="0.001" class="searchTerm" placeholder="Artist Hotness (0-1)">
+   </div>
+    <br>
+   <div class="search">
+      <input name="duration" id="duration" type="number" step="0.1" class="searchTerm" placeholder="Duration (seconds)">
+   </div>
+    <br>
+   <div class="search">
+      <input name="loudness" id="loudness" type="number" step="0.1" class="searchTerm" placeholder="Loudness (dB)">
+   </div>
+    <br>
+   <div class="search">
+      <input name="song_hotness" id="song_hotness" type="number" step="0.001" class="searchTerm" placeholder="Song Hotness (0-1)">
+   </div>
+    <br>
+   <div class="search">
+      <input name="start_to_fade_out" id="start_to_fade_out" type="number" step="0.001" class="searchTerm" placeholder="Start of Fade Out (seconds)">
+   </div>
+    <br>
+   <div class="search">
+      <input name="tempo" id="tempo" type="number" step="0.1" class="searchTerm" placeholder="Tempo (BPM)">
+   </div>
+    <br>
+   <div class="search">
+      <input name="time_signature" id="time_signature" type="number" class="searchTerm" placeholder="Time Signature">
+   </div>
+    <br>
+   <div class="search">
+      <input name="time_sign_confidence" id="time_sign_confidence" type="number" step="0.001" class="searchTerm" placeholder="Time Signature Confidence (0-1)">
+   </div>
+    <br>
+
+      <button type="submit" name="pred_button" class="searchButton"> Predict
+     </button>
+   </form>
+   {% if response == 0 %}
+    <h2> Prediction: Song will NOT be popular</h2>
+    {% elif response == 1 %}
+     <h2> Prediction: Song WILL be popular!</h2>
+    {% else %}
+     <h2> Enter song features to predict popularity</h2>
+    {% endif %}
+</div>
+
+<script>
+function fillExample(familiarity, hotness, duration, loudness, songHotness, fadeOut, tempo, timeSig, timeSigConf) {
+    document.getElementById('artist_familiarity').value = familiarity;
+    document.getElementById('artist_hotness').value = hotness;
+    document.getElementById('duration').value = duration;
+    document.getElementById('loudness').value = loudness;
+    document.getElementById('song_hotness').value = songHotness;
+    document.getElementById('start_to_fade_out').value = fadeOut;
+    document.getElementById('tempo').value = tempo;
+    document.getElementById('time_signature').value = timeSig;
+    document.getElementById('time_sign_confidence').value = timeSigConf;
+}
+</script>
+</body>
+</html>
