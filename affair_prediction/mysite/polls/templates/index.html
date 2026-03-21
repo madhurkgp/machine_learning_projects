@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relationship Affairs Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --border-color: #e5e7eb;
+            --bg-light: #f9fafb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-label i {
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .form-control:hover, .form-select:hover {
+            border-color: #9ca3af;
+        }
+
+        .btn-predict {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+
+        .btn-predict:active {
+            transform: translateY(0);
+        }
+
+        .btn-sample {
+            background: var(--secondary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+        }
+
+        .btn-sample:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(240, 147, 251, 0.3);
+            color: white;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .result-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #b8dabc;
+            color: #155724;
+        }
+
+        .result-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #f1b0b7;
+            color: #721c24;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-description {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .info-section {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-section h3 {
+            color: var(--text-dark);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-section p {
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li i {
+            color: var(--success-color);
+            font-size: 0.8rem;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .card-header h1 {
+                font-size: 2rem;
+            }
+            
+            .card-body {
+                padding: 25px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .btn-predict, .btn-sample {
+                width: 100%;
+                margin: 10px 0;
+            }
+            
+            .button-group {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="form-card fade-in">
+            <div class="card-header">
+                <h1><i class="fas fa-heart"></i> Relationship Affairs Prediction</h1>
+                <p>Advanced ML-based prediction model using demographic and relationship factors</p>
+            </div>
+            
+            <div class="card-body">
+                <div class="info-section">
+                    <h3><i class="fas fa-info-circle"></i> About This Model</h3>
+                    <p>This prediction model analyzes various demographic and relationship factors to estimate the likelihood of extramarital affairs. The model is trained on a comprehensive dataset and uses machine learning algorithms to provide accurate predictions.</p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check"></i> Uses 9 key features including age, marriage rating, education, and occupation</li>
+                        <li><i class="fas fa-check"></i> Principal Component Analysis (PCA) for dimensionality reduction</li>
+                        <li><i class="fas fa-check"></i> Trained on 6,366 real-world samples</li>
+                        <li><i class="fas fa-check"></i> Provides instant predictions with confidence scores</li>
+                    </ul>
+                </div>
+
+                <form method="post" id="predictionForm">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user"></i> Full Name
+                            </label>
+                            <input type="text" name="Name" class="form-control" placeholder="Enter your name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-birthday-cake"></i> Age (17-50)
+                            </label>
+                            <input type="number" name="age" class="form-control" placeholder="Enter age" min="17" max="50" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-ring"></i> Years Married
+                            </label>
+                            <input type="number" name="years_marr" class="form-control" placeholder="Years married" min="0" max="30" step="0.5" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-child"></i> Number of Children
+                            </label>
+                            <input type="number" name="child" class="form-control" placeholder="Number of children" min="0" max="6" step="0.5" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-graduation-cap"></i> Education Level
+                            </label>
+                            <select name="education" class="form-select" required>
+                                <option value="">Select education level</option>
+                                <option value="9">9 - Grade School</option>
+                                <option value="12">12 - High School</option>
+                                <option value="14">14 - Some College</option>
+                                <option value="16">16 - College Graduate</option>
+                                <option value="17">17 - Some Graduate School</option>
+                                <option value="20">20 - Advanced Degree</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-briefcase"></i> Occupation Level (1-6)
+                            </label>
+                            <select name="occu_level" class="form-select" required>
+                                <option value="">Select occupation level</option>
+                                <option value="1">1 - Professional/Managerial</option>
+                                <option value="2">2 - Technical/Administrative</option>
+                                <option value="3">3 - Clerical/Sales</option>
+                                <option value="4">4 - Craftsmen</option>
+                                <option value="5">5 - Operatives</option>
+                                <option value="6">6 - Laborers</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-heart"></i> Rate Your Marriage
+                            </label>
+                            <select name="rate_marr" class="form-select" required>
+                                <option value="">Select marriage rating</option>
+                                <option value="1">1 - Very Poor</option>
+                                <option value="2">2 - Poor</option>
+                                <option value="3">3 - Average</option>
+                                <option value="4">4 - Good</option>
+                                <option value="5">5 - Very Happy</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-pray"></i> Religious Affiliation
+                            </label>
+                            <select name="religion_type" class="form-select" required>
+                                <option value="">Select religious affiliation</option>
+                                <option value="1">1 - Very Religious</option>
+                                <option value="2">2 - Somewhat Religious</option>
+                                <option value="3">3 - Slightly Religious</option>
+                                <option value="4">4 - Not Religious</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-user-tie"></i> Spouse's Occupation Level
+                            </label>
+                            <select name="occu_hus_level" class="form-select" required>
+                                <option value="">Select spouse's occupation</option>
+                                <option value="1">1 - Professional/Managerial</option>
+                                <option value="2">2 - Technical/Administrative</option>
+                                <option value="3">3 - Clerical/Sales</option>
+                                <option value="4">4 - Craftsmen</option>
+                                <option value="5">5 - Operatives</option>
+                                <option value="6">6 - Laborers</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="button-group d-flex justify-content-center">
+                        <button type="submit" class="btn btn-predict">
+                            <i class="fas fa-magic"></i> Get Prediction
+                        </button>
+                        <button type="button" class="btn btn-sample" onclick="fillSampleData()">
+                            <i class="fas fa-flask"></i> Sample Data
+                        </button>
+                    </div>
+                </form>
+
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner"></div>
+                    <p class="mt-3">Analyzing your data...</p>
+                </div>
+
+                {% if response %}
+                <div class="result-section result-success fade-in">
+                    <div class="result-title">
+                        <i class="fas fa-chart-line"></i> Prediction Result
+                    </div>
+                    <div class="result-value">{{ response }}</div>
+                    <div class="result-description">
+                        {% if response == 0 %}
+                            No affairs predicted - Very low likelihood
+                        {% elif response <= 2 %}
+                            Low likelihood of affairs ({{ response }} predicted)
+                        {% elif response <= 5 %}
+                            Moderate likelihood of affairs ({{ response }} predicted)
+                        {% else %}
+                            High likelihood of affairs ({{ response }} predicted)
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if error %}
+                <div class="result-section result-error fade-in">
+                    <div class="result-title">
+                        <i class="fas fa-exclamation-triangle"></i> Error
+                    </div>
+                    <div class="result-description">{{ error }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function fillSampleData() {
+            document.querySelector('input[name="Name"]').value = 'John Doe';
+            document.querySelector('input[name="age"]').value = '32';
+            document.querySelector('input[name="years_marr"]').value = '9';
+            document.querySelector('input[name="child"]').value = '2';
+            document.querySelector('select[name="education"]').value = '16';
+            document.querySelector('select[name="occu_level"]').value = '3';
+            document.querySelector('select[name="rate_marr"]').value = '4';
+            document.querySelector('select[name="religion_type"]').value = '2';
+            document.querySelector('select[name="occu_hus_level"]').value = '4';
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', function() {
+            document.getElementById('loadingSpinner').classList.add('active');
+        });
+
+        // Add form validation
+        const form = document.getElementById('predictionForm');
+        form.addEventListener('submit', function(event) {
+            const name = document.querySelector('input[name="Name"]').value.trim();
+            const age = document.querySelector('input[name="age"]').value;
+            const years_marr = document.querySelector('input[name="years_marr"]').value;
+            const child = document.querySelector('input[name="child"]').value;
+            const education = document.querySelector('select[name="education"]').value;
+            const occu_level = document.querySelector('select[name="occu_level"]').value;
+            const rate_marr = document.querySelector('select[name="rate_marr"]').value;
+            const religion_type = document.querySelector('select[name="religion_type"]').value;
+            const occu_hus_level = document.querySelector('select[name="occu_hus_level"]').value;
+
+            if (!name || !age || !years_marr || !child || !education || !occu_level || !rate_marr || !religion_type || !occu_hus_level) {
+                event.preventDefault();
+                alert('Please fill in all fields before submitting.');
+                return false;
+            }
+
+            const ageNum = parseInt(age);
+            if (ageNum < 17 || ageNum > 50) {
+                event.preventDefault();
+                alert('Please enter a valid age between 17 and 50.');
+                return false;
+            }
+
+            return true;
+        });
+    </script>
+</body>
+</html>
