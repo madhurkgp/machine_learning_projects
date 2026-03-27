@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Website Detector - ML Classification</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-color: #1f2937;
+            --light-bg: #f8fafc;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-label i {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: var(--light-bg);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.1);
+            background-color: white;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+            font-weight: 500;
+            animation: slideIn 0.5s ease;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: var(--danger-color);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: var(--success-color);
+        }
+
+        .phishing-result {
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .phishing-result.is-phishing {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 2px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .phishing-result.not-phishing {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .confidence-score {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature-card {
+            background: var(--light-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .feature-card h5 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-card {
+                padding: 25px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="fas fa-shield-alt"></i> Phishing Website Detector</h1>
+            <p>Advanced Machine Learning Classification System for Detecting Malicious Websites</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <h3 class="mb-4"><i class="fas fa-search"></i> Analyze Website</h3>
+                    
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="" id="predictionForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-globe"></i> Website URL Name
+                            </label>
+                            <input type="text" class="form-control" name="name" id="urlName" 
+                                   placeholder="Enter website name (e.g., example.com)" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-ellipsis-h"></i> Number of Dots
+                                    </label>
+                                    <input type="number" class="form-control" name="NumDots" 
+                                           placeholder="0-20" min="0" max="20" step="0.1" value="2">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-layer-group"></i> Path Level
+                                    </label>
+                                    <input type="number" class="form-control" name="PathLevel" 
+                                           placeholder="0-16" min="0" max="16" step="1" value="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-minus"></i> Number of Dashes
+                                    </label>
+                                    <input type="number" class="form-control" name="NumDash" 
+                                           placeholder="0-60" min="0" max="60" step="1" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-exclamation-triangle"></i> Sensitive Words
+                                    </label>
+                                    <input type="number" class="form-control" name="NumSensitiveWords" 
+                                           placeholder="0-5" min="0" max="5" step="1" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-link"></i> External Hyperlinks (%)
+                                    </label>
+                                    <input type="number" class="form-control" name="PctExtHyperlinks" 
+                                           placeholder="0-1" min="0" max="1" step="0.01" value="0.5">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-external-link-alt"></i> External Resources (%)
+                                    </label>
+                                    <input type="number" class="form-control" name="PctExtResourceUrls" 
+                                           placeholder="0-1" min="0" max="1" step="0.01" value="0.3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-lock-open"></i> Insecure Forms
+                                    </label>
+                                    <select class="form-select" name="InsecureForms">
+                                        <option value="0">No (Secure)</option>
+                                        <option value="1">Yes (Insecure)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-undo"></i> Self-Redirect Hyperlinks (%)
+                                    </label>
+                                    <input type="number" class="form-control" name="PctNullSelfRedirectHyperlinks" 
+                                           placeholder="0-1" min="0" max="1" step="0.01" value="0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-random"></i> Domain Mismatch
+                                    </label>
+                                    <select class="form-select" name="FrequentDomainNameMismatch">
+                                        <option value="0">No Match</option>
+                                        <option value="1">Mismatch Found</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-envelope"></i> Submit to Email
+                                    </label>
+                                    <select class="form-select" name="SubmitInfoToEmail">
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-window-restore"></i> Iframe/Frame
+                                    </label>
+                                    <select class="form-select" name="IframeOrFrame">
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search"></i> Analyze Website
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="fillSampleData()">
+                                <i class="fas fa-magic"></i> Sample Data
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="loading-spinner" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Analyzing...</span>
+                        </div>
+                        <p class="mt-3">Analyzing website for phishing indicators...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                {% if response %}
+                <div class="result-card">
+                    <h3><i class="fas fa-chart-line"></i> Analysis Results</h3>
+                    
+                    <div class="phishing-result {% if response.is_phishing %}is-phishing{% else %}not-phishing{% endif %}">
+                        <h4>
+                            {% if response.is_phishing %}
+                                <i class="fas fa-exclamation-triangle"></i> PHISHING DETECTED
+                            {% else %}
+                                <i class="fas fa-check-circle"></i> SAFE WEBSITE
+                            {% endif %}
+                        </h4>
+                        <p class="mb-2"><strong>URL:</strong> {{ response.url_name }}</p>
+                        {% if response.confidence %}
+                        <div class="confidence-score">
+                            Confidence: {{ response.confidence|floatformat:2 }}%
+                        </div>
+                        {% endif %}
+                        {% if not response.model_loaded %}
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-info-circle"></i> 
+                            <small>Using rule-based analysis (ML model unavailable)</small>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <h5><i class="fas fa-info-circle"></i> Recommendation</h5>
+                        {% if response.is_phishing %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-shield-alt"></i> 
+                            <strong>Warning:</strong> This website shows characteristics of phishing sites. 
+                            Avoid entering personal information and consider using alternative services.
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> 
+                            <strong>Good:</strong> This website appears to be legitimate. 
+                            Always remain cautious when browsing online.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="feature-card">
+                    <h5><i class="fas fa-brain"></i> How It Works</h5>
+                    <p>Our ML model analyzes 11 different features of websites to detect phishing patterns using advanced machine learning algorithms.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h5><i class="fas fa-shield-alt"></i> Stay Safe</h5>
+                    <p>Always verify website URLs, look for HTTPS encryption, and be cautious with emails asking for personal information.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-grid mt-5">
+            <div class="feature-card">
+                <h5><i class="fas fa-chart-bar"></i> URL Analysis</h5>
+                <p>Examines URL structure including dots, dashes, path levels, and sensitive words that are commonly found in phishing sites.</p>
+            </div>
+            <div class="feature-card">
+                <h5><i class="fas fa-link"></i> Link Evaluation</h5>
+                <p>Analyzes external hyperlinks and resource URLs to detect suspicious linking patterns typical of phishing attacks.</p>
+            </div>
+            <div class="feature-card">
+                <h5><i class="fas fa-lock"></i> Security Check</h5>
+                <p>Checks for insecure forms, domain mismatches, and other security indicators that suggest malicious intent.</p>
+            </div>
+            <div class="feature-card">
+                <h5><i class="fas fa-robot"></i> ML Powered</h5>
+                <p>Uses trained machine learning models with high accuracy to classify websites based on learned patterns from real data.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.classList.add('active');
+            
+            // Simulate processing time
+            setTimeout(() => {
+                loadingSpinner.classList.remove('active');
+            }, 2000);
+        });
+
+        function fillSampleData() {
+            document.getElementById('urlName').value = 'suspicious-site-login.com';
+            document.querySelector('[name="NumDots"]').value = '3';
+            document.querySelector('[name="PathLevel"]').value = '5';
+            document.querySelector('[name="NumDash"]').value = '2';
+            document.querySelector('[name="NumSensitiveWords"]').value = '3';
+            document.querySelector('[name="PctExtHyperlinks"]').value = '0.8';
+            document.querySelector('[name="PctExtResourceUrls"]').value = '0.6';
+            document.querySelector('[name="PctNullSelfRedirectHyperlinks"]').value = '0.4';
+            document.querySelector('[name="InsecureForms"]').value = '1';
+            document.querySelector('[name="FrequentDomainNameMismatch"]').value = '1';
+            document.querySelector('[name="SubmitInfoToEmail"]').value = '1';
+            document.querySelector('[name="IframeOrFrame"]').value = '1';
+        }
+
+        // Add input validation
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function() {
+                const min = parseFloat(this.min);
+                const max = parseFloat(this.max);
+                const value = parseFloat(this.value);
+                
+                if (value < min) this.value = min;
+                if (value > max) this.value = max;
+            });
+        });
+    </script>
+</body>
+</html>
