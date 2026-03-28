@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Fit Predictor - ML Powered Quality Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .result-excellent {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .result-good {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .result-average {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .result-poor {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .quality-score {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .quality-label {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .confidence {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clothing Fit Predictor</h1>
+        <p class="subtitle">AI-powered quality assessment for perfect fit recommendations</p>
+        
+        {% if error %}
+        <div class="error-message">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="" id="predictionForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required placeholder="Enter your name">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="size">Garment Size</label>
+                    <input type="number" id="size" name="size" required min="0" max="50" placeholder="e.g., 8, 12, 16">
+                </div>
+
+                <div class="form-group">
+                    <label for="height">Height (inches)</label>
+                    <input type="number" id="height" name="height" required min="48" max="84" placeholder="e.g., 65">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="cup">Cup Size</label>
+                    <select id="cup" name="cup" required>
+                        <option value="">Select cup size</option>
+                        <option value="0">A</option>
+                        <option value="1">AA</option>
+                        <option value="2">B</option>
+                        <option value="3">C</option>
+                        <option value="4">D</option>
+                        <option value="5">DD/E</option>
+                        <option value="6">DDD/F</option>
+                        <option value="7">DDDD/G</option>
+                        <option value="8">H</option>
+                        <option value="9">I</option>
+                        <option value="10">J</option>
+                        <option value="11">K</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bra">Bra Size</label>
+                    <input type="number" id="bra" name="bra" required min="28" max="44" placeholder="e.g., 34">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="category">Clothing Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select category</option>
+                        <option value="0">Bottoms</option>
+                        <option value="1">Dresses</option>
+                        <option value="2">New</option>
+                        <option value="3">Outerwear</option>
+                        <option value="4">Sale</option>
+                        <option value="5">Tops</option>
+                        <option value="6">Wedding</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="length">Length Preference</label>
+                    <select id="length" name="length" required>
+                        <option value="">Select length</option>
+                        <option value="0">Just Right</option>
+                        <option value="1">Slightly Long</option>
+                        <option value="2">Lightly Short</option>
+                        <option value="3">Slightly Short</option>
+                        <option value="4">Very Long</option>
+                        <option value="5">Very Short</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fit">Fit Preference</label>
+                    <select id="fit" name="fit" required>
+                        <option value="">Select fit</option>
+                        <option value="0">Fit</option>
+                        <option value="1">Large</option>
+                        <option value="2">Small</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="shoeSize">Shoe Size</label>
+                    <input type="number" id="shoeSize" name="shoeSize" required min="4" max="15" step="0.5" placeholder="e.g., 8.5">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="shoeWidth">Shoe Width</label>
+                <select id="shoeWidth" name="shoeWidth" required>
+                    <option value="">Select width</option>
+                    <option value="0">Average</option>
+                    <option value="1">Narrow</option>
+                    <option value="2">Wide</option>
+                </select>
+            </div>
+
+            <div class="btn-container">
+                <button type="button" class="btn btn-secondary" onclick="fillSampleData()">
+                    Sample Data
+                </button>
+                <button type="submit" name="pred_button" class="btn btn-primary">
+                    Predict Quality
+                </button>
+            </div>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your measurements...</p>
+        </div>
+
+        {% if response %}
+        <div class="result" id="result">
+            <div class="quality-label">Predicted Quality Score</div>
+            <div class="quality-score">{{ response.0 }}/5</div>
+            <div class="confidence">
+                {% if response.0 >= 4 %}
+                    Excellent fit! This garment should work perfectly for you.
+                {% elif response.0 >= 3 %}
+                    Good fit with minor adjustments may be needed.
+                {% elif response.0 >= 2 %}
+                    Average fit - consider trying a different size.
+                {% else %}
+                    Poor fit recommended - try a different style or size.
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function fillSampleData() {
+            document.getElementById('name').value = 'Jane Doe';
+            document.getElementById('size').value = '8';
+            document.getElementById('height').value = '65';
+            document.getElementById('cup').value = '3';
+            document.getElementById('bra').value = '34';
+            document.getElementById('category').value = '5';
+            document.getElementById('length').value = '0';
+            document.getElementById('fit').value = '0';
+            document.getElementById('shoeSize').value = '8';
+            document.getElementById('shoeWidth').value = '0';
+        }
+
+        function getResultClass(score) {
+            if (score >= 4) return 'result-excellent';
+            if (score >= 3) return 'result-good';
+            if (score >= 2) return 'result-average';
+            return 'result-poor';
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', function() {
+            document.getElementById('loading').style.display = 'block';
+            const resultDiv = document.getElementById('result');
+            if (resultDiv) {
+                resultDiv.style.display = 'none';
+            }
+        });
+
+        // Add form validation
+        const form = document.getElementById('predictionForm');
+        form.addEventListener('submit', function(event) {
+            const name = document.getElementById('name').value.trim();
+            if (!name) {
+                event.preventDefault();
+                alert('Please enter your name');
+                return;
+            }
+        });
+
+        // Set result class when page loads with response
+        {% if response %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultDiv = document.getElementById('result');
+            const score = {{ response.0 }};
+            resultDiv.className = 'result ' + getResultClass(score);
+        });
+        {% endif %}
+    </script>
+</body>
+</html>
