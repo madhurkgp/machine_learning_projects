@@ -104,6 +104,7 @@ def index_func(request):
         'processed_texts': processed_texts,
         'text1_input': request.POST.get('text1', ''),
         'text2_input': request.POST.get('text2', ''),
+        'similarity_percentage': round(similarity * 100, 1),
     }
     
     return render(request, 'index.html', context)
