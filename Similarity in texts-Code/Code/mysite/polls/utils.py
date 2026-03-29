@@ -48,8 +48,10 @@ def Cleaning(text):
 stopwords_list = stopwords.words('english')
 def removeStopwords(sentence):
   words = sentence.split(" ")
+  # Remove stopwords but keep single-character words that might be meaningful
   filtered_sentence = [word for word in words if not word in stopwords_list]
-  ans = ' '.join([i for i in filtered_sentence if len(i) >= 2])
+  # Keep words with length >= 1 (instead of >= 2) to preserve more words
+  ans = ' '.join([i for i in filtered_sentence if len(i) >= 1])
 
   return ans
 

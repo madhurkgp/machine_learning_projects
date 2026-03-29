@@ -71,12 +71,27 @@ def index_func(request):
                 logger.info(f"Text 2: {len(pre_final2.split(' '))} words, {count2} unrecognized")
 
                 # Calculate similarity
+                total_words1 = len(pre_final1.split(' '))
+                total_words2 = len(pre_final2.split(' '))
+                recognized_words1 = total_words1 - count1
+                recognized_words2 = total_words2 - count2
+                
+                logger.info(f"Text 1: {recognized_words1}/{total_words1} words recognized")
+                logger.info(f"Text 2: {recognized_words2}/{total_words2} words recognized")
+                
                 if np.linalg.norm(document_embeddings1) > 0 and np.linalg.norm(document_embeddings2) > 0:
                     similarity = cosine_similarity(document_embeddings1, document_embeddings2)
                     logger.info(f"Similarity calculated: {similarity}")
                 else:
                     similarity = 0.0
-                    error_message = "Could not calculate similarity due to insufficient recognizable words."
+                    if recognized_words1 == 0 and recognized_words2 == 0:
+                        error_message = "No recognizable words found in either text. Please try with different text containing common English words."
+                    elif recognized_words1 == 0:
+                        error_message = "No recognizable words found in the first text. Please try with different text containing common English words."
+                    elif recognized_words2 == 0:
+                        error_message = "No recognizable words found in the second text. Please try with different text containing common English words."
+                    else:
+                        error_message = f"Insufficient recognizable words for similarity calculation (Text 1: {recognized_words1} words, Text 2: {recognized_words2} words). Try using longer texts with more common vocabulary."
                     
             except Exception as e:
                 logger.error(f"Error processing texts: {e}")
