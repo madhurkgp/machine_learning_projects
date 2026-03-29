@@ -1,0 +1,427 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Similarity Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #d1d5db;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .result-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .similarity-score {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .similarity-label {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .similarity-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .similarity-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: width 1s ease;
+            border-radius: 15px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .processed-texts {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .processed-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .processed-text h4 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .processed-text p {
+            color: #666;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+
+        .sample-texts {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4169e1;
+        }
+
+        .sample-texts h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .sample-pair {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sample-pair:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .sample-pair p {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .sample-pair strong {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .similarity-score {
+                font-size: 2rem;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Text Similarity Analyzer</h1>
+            <p>Discover how similar two texts are using advanced machine learning algorithms</p>
+        </div>
+
+        {% if error_message %}
+            <div class="error-message">
+                <strong>Error:</strong> {{ error_message }}
+            </div>
+        {% endif %}
+
+        <div class="sample-texts">
+            <h3>📝 Sample Texts for Testing</h3>
+            <div class="sample-pair" onclick="fillSampleTexts(1)">
+                <p><strong>Technology:</strong></p>
+                <p>Text 1: "Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience."</p>
+                <p>Text 2: "AI systems can automatically learn and enhance their performance through data analysis and pattern recognition."</p>
+            </div>
+            <div class="sample-pair" onclick="fillSampleTexts(2)">
+                <p><strong>Nature:</strong></p>
+                <p>Text 1: "The forest was filled with tall trees and various wildlife species living in harmony."</p>
+                <p>Text 2: "Woodlands contain diverse flora and fauna coexisting in their natural habitat."</p>
+            </div>
+        </div>
+
+        <form method="post" action="" id="similarityForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="text1">First Text</label>
+                <textarea 
+                    name="text1" 
+                    id="text1" 
+                    class="form-control" 
+                    placeholder="Enter your first text here..."
+                    required>{{ text1_input }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="text2">Second Text</label>
+                <textarea 
+                    name="text2" 
+                    id="text2" 
+                    class="form-control" 
+                    placeholder="Enter your second text here..."
+                    required>{{ text2_input }}</textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" name="pred_button" class="btn btn-primary" id="analyzeBtn">
+                    <span id="btnText">Analyze Similarity</span>
+                    <span id="btnLoading" class="loading" style="display: none;"></span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+            </div>
+        </form>
+
+        {% if response > 0 %}
+            <div class="result-card show" id="resultCard">
+                <div class="similarity-score">{{ response }}</div>
+                <div class="similarity-label">Similarity Score</div>
+                
+                <div class="similarity-bar">
+                    <div class="similarity-fill" style="width: {{ response|floatformat:2|multiply:100 }}%"></div>
+                </div>
+
+                <div class="similarity-label">
+                    {% if response > 0.8 %}
+                        Very High Similarity - The texts are extremely similar!
+                    {% elif response > 0.6 %}
+                        High Similarity - The texts share many common concepts.
+                    {% elif response > 0.4 %}
+                        Moderate Similarity - The texts have some common elements.
+                    {% elif response > 0.2 %}
+                        Low Similarity - The texts are somewhat related.
+                    {% else %}
+                        Very Low Similarity - The texts are quite different.
+                    {% endif %}
+                </div>
+
+                {% if processed_texts.text1_processed or processed_texts.text2_processed %}
+                    <div class="processed-texts">
+                        <h3>🔍 Processed Text Analysis</h3>
+                        {% if processed_texts.text1_processed %}
+                            <div class="processed-text">
+                                <h4>Text 1 (Processed):</h4>
+                                <p>{{ processed_texts.text1_processed }}</p>
+                            </div>
+                        {% endif %}
+                        {% if processed_texts.text2_processed %}
+                            <div class="processed-text">
+                                <h4>Text 2 (Processed):</h4>
+                                <p>{{ processed_texts.text2_processed }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('similarityForm');
+            const clearBtn = document.getElementById('clearBtn');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
+            const text1 = document.getElementById('text1');
+            const text2 = document.getElementById('text2');
+
+            // Form submission with loading state
+            form.addEventListener('submit', function() {
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline-block';
+                analyzeBtn.disabled = true;
+            });
+
+            // Clear button functionality
+            clearBtn.addEventListener('click', function() {
+                text1.value = '';
+                text2.value = '';
+                const resultCard = document.getElementById('resultCard');
+                if (resultCard) {
+                    resultCard.classList.remove('show');
+                }
+            });
+
+            // Sample text insertion
+            window.fillSampleTexts = function(sampleNumber) {
+                if (sampleNumber === 1) {
+                    text1.value = "Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience.";
+                    text2.value = "AI systems can automatically learn and enhance their performance through data analysis and pattern recognition.";
+                } else if (sampleNumber === 2) {
+                    text1.value = "The forest was filled with tall trees and various wildlife species living in harmony.";
+                    text2.value = "Woodlands contain diverse flora and fauna coexisting in their natural habitat.";
+                }
+                
+                // Scroll to form
+                form.scrollIntoView({ behavior: 'smooth' });
+            };
+        });
+    </script>
+</body>
+</html>
