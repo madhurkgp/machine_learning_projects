@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load humanize %}
+
+{% block title %}About - Black Friday Sale Prediction{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+        border-radius: 0 0 50px 50px;
+        margin-bottom: 3rem;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-importance {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .progress-bar-custom {
+        height: 30px;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .tech-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-3 fw-bold mb-4">
+            <i class="fas fa-brain me-3"></i>
+            About the Black Friday Predictor
+        </h1>
+        <p class="lead mb-0">
+            Discover the machine learning technology behind accurate purchase predictions
+        </p>
+    </div>
+</div>
+
+<!-- Model Information -->
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="info-card">
+                <h2 class="text-primary mb-4">
+                    <i class="fas fa-robot me-2"></i>
+                    Machine Learning Model
+                </h2>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ model_info.model_type }}</div>
+                            <p class="lead mb-0">Model Type</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ model_info.training_samples|intcomma }}</div>
+                            <p class="lead mb-0">Training Samples</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ model_info.features }}</div>
+                            <p class="lead mb-0">Features</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ model_info.r2_score }}</div>
+                            <p class="lead mb-0">R² Score</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ model_info.rmse }}</div>
+                            <p class="lead mb-0">RMSE</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 class="mb-3">Model Performance</h4>
+                <p class="text-muted">
+                    Our Random Forest Regressor model achieves an R² score of {{ model_info.r2_score }}, 
+                    indicating that approximately 77% of the variance in purchase amounts can be explained 
+                    by the input features. The model was trained on over {{ model_info.training_samples|intcomma }} 
+                    customer transactions from the Black Friday sales dataset.
+                </p>
+            </div>
+            
+            <!-- Technology Stack -->
+            <div class="info-card">
+                <h3 class="text-primary mb-4">
+                    <i class="fas fa-code me-2"></i>
+                    Technology Stack
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Backend</h5>
+                        <div class="mb-3">
+                            <span class="tech-badge">Django</span>
+                            <span class="tech-badge">Python</span>
+                            <span class="tech-badge">scikit-learn</span>
+                            <span class="tech-badge">pandas</span>
+                            <span class="tech-badge">numpy</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Frontend</h5>
+                        <div class="mb-3">
+                            <span class="tech-badge">Bootstrap 5</span>
+                            <span class="tech-badge">Font Awesome</span>
+                            <span class="tech-badge">JavaScript</span>
+                            <span class="tech-badge">CSS3</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="mt-4">Machine Learning Libraries</h5>
+                <div>
+                    <span class="tech-badge">RandomForest</span>
+                    <span class="tech-badge">StandardScaler</span>
+                    <span class="tech-badge">LabelEncoder</span>
+                    <span class="tech-badge">joblib</span>
+                </div>
+            </div>
+            
+            <!-- Feature Importance -->
+            {% if feature_importance %}
+            <div class="feature-importance">
+                <h3 class="text-primary mb-4">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Feature Importance Analysis
+                </h3>
+                
+                <p class="text-muted mb-4">
+                    The following features have the highest impact on purchase amount predictions. 
+                    Features are ranked by their importance score in the Random Forest model.
+                </p>
+                
+                {% for feature, importance in feature_importance %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fw-semibold">{{ feature }}</span>
+                        <span class="text-muted">{{ importance|floatformat:4 }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-custom" style="width: {{ importance|mul:100|floatformat:1 }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- How It Works -->
+            <div class="info-card">
+                <h3 class="text-primary mb-4">
+                    <i class="fas fa-cogs me-2"></i>
+                    How It Works
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="list-group list-group-numbered">
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">Data Collection</div>
+                                    Customer demographic and transaction data is collected through the input form.
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">Data Preprocessing</div>
+                                    Raw data is cleaned, encoded, and scaled to match the training data format.
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">Feature Engineering</div>
+                                    Categorical variables are encoded and numerical features are standardized.
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">Model Prediction</div>
+                                    The preprocessed data is fed to the trained Random Forest model.
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">Result Display</div>
+                                    The predicted purchase amount is displayed with confidence metrics.
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
