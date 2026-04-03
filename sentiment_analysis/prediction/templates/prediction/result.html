@@ -1,0 +1,109 @@
+{% extends 'prediction/base.html' %}
+
+{% block title %}Analysis Result - Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="tab-pane fade show active" id="home" role="tabpanel">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-4">
+                <h2 class="mb-3"><i class="fas fa-check-circle text-success"></i> Analysis Complete!</h2>
+                <p class="text-muted">Here's what our AI model found in your text.</p>
+            </div>
+            
+            <div class="result-card {{ result.prediction.lower() }} pulse">
+                <div class="text-center mb-4">
+                    <h3 class="mb-3">
+                        {% if result.prediction == 'Positive' %}
+                            <i class="fas fa-smile text-success"></i> Positive Sentiment
+                        {% elif result.prediction == 'Negative' %}
+                            <i class="fas fa-frown text-danger"></i> Negative Sentiment
+                        {% else %}
+                            <i class="fas fa-meh text-secondary"></i> Neutral Sentiment
+                        {% endif %}
+                    </h3>
+                    
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" data-confidence="{{ result.confidence }}">
+                            {{ result.confidence }}% Confidence
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5><i class="fas fa-quote-left"></i> Original Text:</h5>
+                    <div class="bg-light p-3 rounded">
+                        <p class="mb-0">{{ input_text }}</p>
+                    </div>
+                </div>
+                
+                {% if result.processed_text %}
+                <div class="mb-4">
+                    <h5><i class="fas fa-cogs"></i> Processed Text:</h5>
+                    <div class="bg-light p-3 rounded">
+                        <p class="mb-0 text-muted">{{ result.processed_text }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'prediction:home' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-plus"></i> Analyze Another Text
+                </a>
+                <a href="{% url 'prediction:history' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-history"></i> View History
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% if recent_predictions %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-4"><i class="fas fa-clock"></i> Recent Predictions</h4>
+            <div class="row">
+                {% for prediction in recent_predictions %}
+                <div class="col-md-6 mb-3">
+                    <div class="history-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="sentiment-badge {% if prediction.prediction == 'Positive' %}bg-success{% elif prediction.prediction == 'Negative' %}bg-danger{% else %}bg-secondary{% endif %} text-white">
+                                {{ prediction.prediction }}
+                            </span>
+                            <small class="text-muted">{{ prediction.created_at|date:"M d, H:i" }}</small>
+                        </div>
+                        <p class="mb-2">{{ prediction.text|truncatewords:20 }}</p>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" data-confidence="{{ prediction.confidence }}">
+                                {{ prediction.confidence }}% Confidence
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="tab-pane fade" id="history" role="tabpanel">
+    <div class="text-center">
+        <p>View your <a href="{% url 'prediction:history' %}">complete prediction history</a> to see all past analyses.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add some animation to the confidence bar
+document.addEventListener('DOMContentLoaded', function() {
+    const confidenceFill = document.querySelector('.confidence-fill');
+    if (confidenceFill) {
+        setTimeout(() => {
+            confidenceFill.style.width = confidenceFill.style.width;
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

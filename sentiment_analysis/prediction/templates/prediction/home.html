@@ -1,0 +1,157 @@
+{% extends 'prediction/base.html' %}
+
+{% block title %}Home - Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="tab-pane fade show active" id="home" role="tabpanel">
+    {% if messages %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-4">
+                <h2 class="mb-3">Analyze Text Sentiment</h2>
+                <p class="text-muted">Enter your text below to discover whether it expresses positive, negative, or neutral sentiment.</p>
+            </div>
+            
+            <form method="post" id="analysisForm">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="{{ form.text.id_for_label }}" class="form-label fw-bold">
+                        <i class="fas fa-comment-dots"></i> {{ form.text.label }}
+                    </label>
+                    {{ form.text }}
+                    {% if form.text.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in form.text.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-text">Maximum 5000 characters. HTML tags and URLs will be automatically removed.</div>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-search"></i> Analyze Sentiment
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-lg" onclick="loadSampleText()">
+                        <i class="fas fa-lightbulb"></i> Sample Text
+                    </button>
+                </div>
+            </form>
+            
+            <div id="sampleTexts" class="mt-4" style="display: none;">
+                <h5 class="mb-3"><i class="fas fa-flask"></i> Sample Texts for Testing:</h5>
+                <div id="sampleContainer"></div>
+            </div>
+            
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Analyzing...</span>
+                </div>
+                <p class="mt-2">Analyzing sentiment...</p>
+            </div>
+        </div>
+    </div>
+    
+    {% if recent_predictions %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-4"><i class="fas fa-clock"></i> Recent Predictions</h4>
+            <div class="row">
+                {% for prediction in recent_predictions %}
+                <div class="col-md-6 mb-3">
+                    <div class="history-item {% if prediction.prediction == 'Positive' %}border-success{% elif prediction.prediction == 'Negative' %}border-danger{% else %}border-secondary{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="sentiment-badge {% if prediction.prediction == 'Positive' %}bg-success{% elif prediction.prediction == 'Negative' %}bg-danger{% else %}bg-secondary{% endif %} text-white">
+                                {{ prediction.prediction }}
+                            </span>
+                            <small class="text-muted">{{ prediction.created_at|date:"M d, H:i" }}</small>
+                        </div>
+                        <p class="mb-2">{{ prediction.text|truncatewords:20 }}</p>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" data-confidence="{{ prediction.confidence }}">
+                                {{ prediction.confidence }}% Confidence
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="tab-pane fade" id="history" role="tabpanel">
+    <div class="text-center">
+        <p>View your <a href="{% url 'prediction:history' %}">complete prediction history</a> to see all past analyses.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('analysisForm').addEventListener('submit', function() {
+    document.getElementById('loadingSpinner').classList.add('active');
+});
+
+function loadSampleText() {
+    const sampleDiv = document.getElementById('sampleTexts');
+    const container = document.getElementById('sampleContainer');
+    
+    if (sampleDiv.style.display === 'none') {
+        fetch('/api/samples/')
+            .then(response => response.json())
+            .then(data => {
+                container.innerHTML = '';
+                data.samples.forEach((sample, index) => {
+                    const sampleBtn = document.createElement('div');
+                    sampleBtn.className = 'sample-text-btn';
+                    sampleBtn.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${sample.substring(0, 100)}${sample.length > 100 ? '...' : ''}</span>
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                            `;
+                    sampleBtn.onclick = () => {
+                        document.getElementById('text-input').value = sample;
+                        sampleDiv.style.display = 'none';
+                    };
+                    container.appendChild(sampleBtn);
+                });
+                sampleDiv.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading samples:', error);
+            });
+    } else {
+        sampleDiv.style.display = 'none';
+    }
+}
+
+// Character counter
+document.getElementById('text-input').addEventListener('input', function() {
+    const maxLength = 5000;
+    const currentLength = this.value.length;
+    const remaining = maxLength - currentLength;
+    
+    if (currentLength > maxLength * 0.9) {
+        this.classList.add('border-warning');
+    } else {
+        this.classList.remove('border-warning');
+    }
+    
+    if (currentLength >= maxLength) {
+        this.value = this.value.substring(0, maxLength);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'prediction/base.html' %}
+
+{% block title %}History - Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="tab-pane fade" id="history" role="tabpanel">
+    <div class="tab-pane fade show active" id="home" role="tabpanel">
+        <div class="text-center mb-4">
+            <h2><i class="fas fa-history"></i> Prediction History</h2>
+            <p class="text-muted">View all your past sentiment analyses</p>
+        </div>
+        
+        {% if page_obj %}
+            <div class="row">
+                {% for prediction in page_obj %}
+                <div class="col-lg-6 mb-4">
+                    <div class="history-item">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="sentiment-badge {% if prediction.prediction == 'Positive' %}bg-success{% elif prediction.prediction == 'Negative' %}bg-danger{% else %}bg-secondary{% endif %} text-white">
+                                {% if prediction.prediction == 'Positive' %}
+                                    <i class="fas fa-smile"></i> {{ prediction.prediction }}
+                                {% elif prediction.prediction == 'Negative' %}
+                                    <i class="fas fa-frown"></i> {{ prediction.prediction }}
+                                {% else %}
+                                    <i class="fas fa-meh"></i> {{ prediction.prediction }}
+                                {% endif %}
+                            </span>
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> {{ prediction.created_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6><i class="fas fa-quote-left"></i> Text:</h6>
+                            <p class="mb-0">{{ prediction.text }}</p>
+                        </div>
+                        
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" data-confidence="{{ prediction.confidence }}">
+                                {{ prediction.confidence }}% Confidence
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Prediction history pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h4>No Predictions Yet</h4>
+                <p class="text-muted">Start analyzing text to see your prediction history here.</p>
+                <a href="{% url 'prediction:home' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Analyze Your First Text
+                </a>
+            </div>
+        {% endif %}
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'prediction:home' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add hover effects to history items
+document.addEventListener('DOMContentLoaded', function() {
+    const historyItems = document.querySelectorAll('.history-item');
+    historyItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
+</script>
+{% endblock %}
