@@ -1,0 +1,291 @@
+{% extends 'predictor/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">
+            <i class="fas fa-info-circle"></i> About Parkinson's Disease Prediction
+        </h1>
+        <p class="hero-description">
+            Learn about the science behind voice analysis for Parkinson's disease detection and how our machine learning system works.
+        </p>
+    </div>
+</section>
+
+<!-- About Content -->
+<section class="about-section">
+    <div class="container">
+        <!-- What is Parkinson's Disease -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-brain"></i> What is Parkinson's Disease?
+            </h2>
+            <div class="row">
+                <div class="col-md-8">
+                    <p>Parkinson's disease is a progressive neurodegenerative disorder that affects movement control. It occurs when nerve cells in the brain that produce dopamine become impaired or die.</p>
+                    <p><strong>Common symptoms include:</strong></p>
+                    <ul>
+                        <li>Tremors or shaking, especially in hands, arms, or legs</li>
+                        <li>Stiffness of the limbs and trunk</li>
+                        <li>Slowness of movement (bradykinesia)</li>
+                        <li>Impaired balance and coordination</li>
+                        <li>Changes in voice and speech patterns</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="info-title">Statistics</div>
+                        <div class="info-description">
+                            Approximately 1 million people in the US live with Parkinson's disease, with 60,000 new cases diagnosed each year.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Analysis -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-microphone-alt"></i> Voice Analysis for Early Detection
+            </h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-wave-square"></i> Why Voice Matters</h4>
+                    <p>Up to 90% of people with Parkinson's disease experience voice and speech problems. These changes often occur early in the disease progression, making voice analysis a valuable tool for early detection.</p>
+                    
+                    <h4><i class="fas fa-chart-line"></i> Key Voice Indicators</h4>
+                    <ul>
+                        <li><strong>Reduced Vocal Volume:</strong> Softer speaking voice</li>
+                        <li><strong>Monotone Speech:</strong> Loss of normal intonation</li>
+                        <li><strong>Hoarseness:</strong> Changes in voice quality</li>
+                        <li><strong>Rapid Speech:</li> Rushed or unclear speech patterns</li>
+                        <li><strong>Vocal Tremor:</strong> Shaking in the voice</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4><i class="fas fa-cogs"></i> Technical Analysis</h4>
+                    <p>Our system extracts and analyzes multiple acoustic features from voice recordings:</p>
+                    
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-signal"></i>
+                            </div>
+                            <div class="info-title">Frequency Analysis</div>
+                            <div class="info-description">
+                                Measures fundamental frequency patterns and variations
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="info-title">Amplitude Analysis</div>
+                            <div class="info-description">
+                                Analyzes voice intensity and shimmer patterns
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="info-title">Nonlinear Dynamics</div>
+                            <div class="info-description">
+                                Evaluates complexity and chaos in voice signals
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Machine Learning Model -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-robot"></i> Our Machine Learning Approach
+            </h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-database"></i> Dataset</h4>
+                    <p>Our model is trained on the Oxford Parkinson's Disease Detection Dataset, which contains:</p>
+                    <ul>
+                        <li>195 voice recordings from 31 individuals</li>
+                        <li>23 people with Parkinson's disease</li>
+                        <li>8 healthy individuals</li>
+                        <li>22 acoustic features per recording</li>
+                    </ul>
+                    
+                    <h4><i class="fas fa-code-branch"></i> Algorithm</h4>
+                    <p>We use a Decision Tree classifier, which achieved:</p>
+                    <ul>
+                        <li><strong>92.3% accuracy</strong> on test data</li>
+                        <li>Perfect recall for healthy cases</li>
+                        <li>High interpretability of decision rules</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4><i class="fas fa-chart-bar"></i> Feature Importance</h4>
+                    <p>The most influential features in our model include:</p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-primary" style="width: 85%">Spread1 (-8 to -2)</div>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-primary" style="width: 78%">PPE (Pitch Period Entropy)</div>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-primary" style="width: 72%">MDVP:Fo (Average Frequency)</div>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-primary" style="width: 65%">DFA (Detrended Fluctuation)</div>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-primary" style="width: 60%">RPDE (Recurrence Density)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Research Background -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-microscope"></i> Research & Scientific Background
+            </h2>
+            <div class="row">
+                <div class="col-md-12">
+                    <p>This research builds on the work of Max Little et al. from the University of Oxford, who demonstrated that voice analysis could be an effective, non-invasive method for detecting Parkinson's disease.</p>
+                    
+                    <blockquote class="blockquote">
+                        <p class="mb-0">"Voice recordings can be collected remotely and non-invasively, making them ideal for telemonitoring of Parkinson's disease progression."</p>
+                        <footer class="blockquote-footer">Little MA, et al. IEEE Transactions on Biomedical Engineering, 2008</footer>
+                    </blockquote>
+                    
+                    <h4><i class="fas fa-graduation-cap"></i> Key Research Findings</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="info-card">
+                                <div class="info-icon">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="info-title">High Accuracy</div>
+                                <div class="info-description">
+                                    Voice analysis can achieve 90%+ accuracy in distinguishing Parkinson's patients from healthy individuals
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-card">
+                                <div class="info-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="info-title">Early Detection</div>
+                                <div class="info-description">
+                                    Voice changes often appear before motor symptoms, enabling earlier diagnosis
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-card">
+                                <div class="info-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="info-title">Remote Monitoring</div>
+                                <div class="info-description">
+                                    Enables continuous monitoring of disease progression from home
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limitations & Future Work -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-exclamation-triangle"></i> Limitations & Future Directions
+            </h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-ban"></i> Current Limitations</h4>
+                    <ul>
+                        <li>Model trained on a relatively small dataset (195 samples)</li>
+                        <li>Voice recordings must be collected in controlled environments</li>
+                        <li>Does not account for other voice disorders</li>
+                        <li>Requires specialized acoustic analysis equipment</li>
+                        <li>Not suitable as a standalone diagnostic tool</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4><i class="fas fa-rocket"></i> Future Improvements</h4>
+                    <ul>
+                        <li>Expand dataset with more diverse participants</li>
+                        <li>Implement deep learning models for better accuracy</li>
+                        <li>Develop mobile app for easy voice recording</li>
+                        <li>Include longitudinal tracking of disease progression</li>
+                        <li>Integration with other biomarkers and clinical data</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ethical Considerations -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-balance-scale"></i> Ethical Considerations & Disclaimer
+            </h2>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Important Medical Disclaimer:</strong>
+            </div>
+            <p>This tool is intended for educational and research purposes only. It should NOT be used as a substitute for professional medical diagnosis, treatment, or advice.</p>
+            
+            <h4>Ethical Guidelines:</h4>
+            <ul>
+                <li><strong>Medical Supervision:</strong> Always consult qualified healthcare professionals for medical concerns</li>
+                <li><strong>Privacy Protection:</strong> All voice data is processed locally and never stored</li>
+                <li><strong>Informed Consent:</strong> Users should understand the limitations of automated screening</li>
+                <li><strong>Accessibility:</strong> Healthcare disparities should not be exacerbated by AI tools</li>
+                <li><strong>Transparency:</strong> Model limitations and confidence levels should be clearly communicated</li>
+            </ul>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>For Researchers:</strong> If you're interested in using this system for research, please ensure appropriate ethical approval and informed consent procedures.
+            </div>
+        </div>
+
+        <!-- References -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-book"></i> References & Further Reading
+            </h2>
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>Key Publications:</h4>
+                    <ol>
+                        <li>Little MA, McSharry PE, Roberts SJ, et al. "Exploiting Nonlinear Recurrence and Fractal Scaling Properties for Voice Disorder Detection." BioMedical Engineering OnLine 2007, 6:23.</li>
+                        <li>Little MA, McSharry PE, Hunter EJ, et al. "Suitability of dysphonia measurements for telemonitoring of Parkinson's disease." IEEE Transactions on Biomedical Engineering. 2008.</li>
+                        <li>Max A. Little, Patrick E. McSharry, Eric J. Hunter, Lorraine O. Ramig (2008), 'Suitability of dysphonia measurements for telemonitoring of Parkinson's disease', IEEE Transactions on Biomedical Engineering.</li>
+                    </ol>
+                    
+                    <h4>Data Source:</h4>
+                    <p>Oxford Parkinson's Disease Detection Dataset - Available through the UCI Machine Learning Repository</p>
+                    
+                    <h4>Additional Resources:</h4>
+                    <ul>
+                        <li><a href="https://www.parkinson.org/" target="_blank">Parkinson's Foundation</a></li>
+                        <li><a href="https://www.michaeljfox.org/" target="_blank">The Michael J. Fox Foundation</a></li>
+                        <li><a href="https://archive.ics.uci.edu/ml/datasets/Parkinsons" target="_blank">UCI ML Repository - Parkinson's Dataset</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

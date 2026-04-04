@@ -1,0 +1,308 @@
+{% extends 'predictor/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">
+            <i class="fas fa-microphone"></i> Parkinson's Disease Prediction
+        </h1>
+        <p class="hero-description">
+            Advanced machine learning system for predicting Parkinson's disease using voice analysis. 
+            Enter vocal measurements below to get an instant prediction.
+        </p>
+        
+        <!-- Info Cards -->
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="info-title">High Accuracy</div>
+                <div class="info-description">
+                    Our model achieves over 92% accuracy in detecting Parkinson's disease from voice patterns.
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="info-title">Instant Results</div>
+                <div class="info-description">
+                    Get immediate predictions with confidence scores and probability breakdowns.
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="info-title">Secure & Private</div>
+                <div class="info-description">
+                    Your data is processed locally and never stored. Privacy is our priority.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Prediction Form -->
+<section class="prediction-section">
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-clipboard-check"></i> Enter Voice Measurements
+            </h2>
+            
+            {% if not model_loaded %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> The ML model is not loaded. Please check server configuration.
+                </div>
+            {% endif %}
+            
+            <!-- Sample Data Buttons -->
+            <div class="text-center mb-4">
+                <p class="text-muted">Quick start with sample data:</p>
+                <button class="btn btn-warning sample-btn" data-sample="healthy">
+                    <i class="fas fa-user"></i> Load Healthy Sample
+                </button>
+                <button class="btn btn-warning sample-btn" data-sample="parkinson">
+                    <i class="fas fa-user-injured"></i> Load Parkinson's Sample
+                </button>
+                <button class="btn btn-secondary" id="clearForm">
+                    <i class="fas fa-eraser"></i> Clear Form
+                </button>
+            </div>
+            
+            <form id="predictionForm" method="post">
+                {% csrf_token %}
+                
+                <!-- Frequency Measurements -->
+                <h3 class="mb-3"><i class="fas fa-wave-square"></i> Frequency Measurements</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="mdvp_fo" class="form-label">{{ form.mdvp_fo.label }}</label>
+                        {{ form.mdvp_fo }}
+                        <div class="form-text">Average vocal fundamental frequency (50-300 Hz)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 50 and 300</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mdvp_fhi" class="form-label">{{ form.mdvp_fhi.label }}</label>
+                        {{ form.mdvp_fhi }}
+                        <div class="form-text">Maximum vocal fundamental frequency (50-600 Hz)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 50 and 600</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mdvp_flo" class="form-label">{{ form.mdvp_flo.label }}</label>
+                        {{ form.mdvp_flo }}
+                        <div class="form-text">Minimum vocal fundamental frequency (50-250 Hz)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 50 and 250</div>
+                    </div>
+                </div>
+                
+                <!-- Jitter Measurements -->
+                <h3 class="mb-3 mt-4"><i class="fas fa-chart-area"></i> Jitter Measurements (Frequency Variation)</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="mdvp_jitter" class="form-label">{{ form.mdvp_jitter.label }}</label>
+                        {{ form.mdvp_jitter }}
+                        <div class="form-text">MDVP Jitter in percent (0-0.05)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.05</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mdvp_jitter_abs" class="form-label">{{ form.mdvp_jitter_abs.label }}</label>
+                        {{ form.mdvp_jitter_abs }}
+                        <div class="form-text">MDVP Jitter absolute (0-0.0003)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.0003</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mdvp_rap" class="form-label">{{ form.mdvp_rap.label }}</label>
+                        {{ form.mdvp_rap }}
+                        <div class="form-text">Relative Amplitude Perturbation (0-0.025)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.025</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mdvp_ppq" class="form-label">{{ form.mdvp_ppq.label }}</label>
+                        {{ form.mdvp_ppq }}
+                        <div class="form-text">Five-point Period Perturbation Quotient (0-0.025)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.025</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="jitter_ddp" class="form-label">{{ form.jitter_ddp.label }}</label>
+                        {{ form.jitter_ddp }}
+                        <div class="form-text">DDP of Jitter (0-0.07)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.07</div>
+                    </div>
+                </div>
+                
+                <!-- Shimmer Measurements -->
+                <h3 class="mb-3 mt-4"><i class="fas fa-water"></i> Shimmer Measurements (Amplitude Variation)</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="mdvp_shimmer" class="form-label">{{ form.mdvp_shimmer.label }}</label>
+                        {{ form.mdvp_shimmer }}
+                        <div class="form-text">MDVP Shimmer (0-0.15)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.15</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mdvp_shimmer_db" class="form-label">{{ form.mdvp_shimmer_db.label }}</label>
+                        {{ form.mdvp_shimmer_db }}
+                        <div class="form-text">MDVP Shimmer in dB (0-1.5)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 1.5</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shimmer_apq3" class="form-label">{{ form.shimmer_apq3.label }}</label>
+                        {{ form.shimmer_apq3 }}
+                        <div class="form-text">Three-point Amplitude Perturbation Quotient (0-0.05)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.05</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shimmer_apq5" class="form-label">{{ form.shimmer_apq5.label }}</label>
+                        {{ form.shimmer_apq5 }}
+                        <div class="form-text">Five-point Amplitude Perturbation Quotient (0-0.08)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.08</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mdvp_apq" class="form-label">{{ form.mdvp_apq.label }}</label>
+                        {{ form.mdvp_apq }}
+                        <div class="form-text">Amplitude Perturbation Quotient (0-0.08)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.08</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shimmer_dda" class="form-label">{{ form.shimmer_dda.label }}</label>
+                        {{ form.shimmer_dda }}
+                        <div class="form-text">DDA of Shimmer (0-0.2)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.2</div>
+                    </div>
+                </div>
+                
+                <!-- Noise and Nonlinear Measures -->
+                <h3 class="mb-3 mt-4"><i class="fas fa-signal"></i> Noise and Nonlinear Measures</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nhr" class="form-label">{{ form.nhr.label }}</label>
+                        {{ form.nhr }}
+                        <div class="form-text">Noise to Harmonic Ratio (0-0.35)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.35</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hnr" class="form-label">{{ form.hnr.label }}</label>
+                        {{ form.hnr }}
+                        <div class="form-text">Harmonic to Noise Ratio (5-40)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 5 and 40</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rpde" class="form-label">{{ form.rpde.label }}</label>
+                        {{ form.rpde }}
+                        <div class="form-text">Recurrence Period Density Entropy (0-1)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 1</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dfa" class="form-label">{{ form.dfa.label }}</label>
+                        {{ form.dfa }}
+                        <div class="form-text">Detrended Fluctuation Analysis (0.5-0.9)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0.5 and 0.9</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="spread1" class="form-label">{{ form.spread1.label }}</label>
+                        {{ form.spread1 }}
+                        <div class="form-text">Spread1 (-8 to -2)</div>
+                        <div class="invalid-feedback">Please enter a valid value between -8 and -2</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="spread2" class="form-label">{{ form.spread2.label }}</label>
+                        {{ form.spread2 }}
+                        <div class="form-text">Spread2 (0-0.5)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.5</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="d2" class="form-label">{{ form.d2.label }}</label>
+                        {{ form.d2 }}
+                        <div class="form-text">D2 nonlinear measure (1-4)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 1 and 4</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ppe" class="form-label">{{ form.ppe.label }}</label>
+                        {{ form.ppe }}
+                        <div class="form-text">Pitch Period Entropy (0-0.6)</div>
+                        <div class="invalid-feedback">Please enter a valid value between 0 and 0.6</div>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg" {% if not model_loaded %}disabled{% endif %}>
+                        <i class="fas fa-brain"></i> Predict Parkinson's Disease
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Analyzing voice patterns...</p>
+        </div>
+        
+        <!-- Error Section -->
+        <div id="error"></div>
+        
+        <!-- Result Section -->
+        <div id="result"></div>
+    </div>
+</section>
+
+<!-- Information Section -->
+<section class="info-section">
+    <div class="container">
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-info-circle"></i> About Voice Analysis for Parkinson's Disease
+            </h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4><i class="fas fa-microphone-alt"></i> What We Measure</h4>
+                    <p>Our system analyzes various vocal characteristics including:</p>
+                    <ul>
+                        <li><strong>Fundamental Frequency:</strong> Average, maximum, and minimum vocal pitch</li>
+                        <li><strong>Jitter:</strong> Variations in fundamental frequency</li>
+                        <li><strong>Shimmer:</strong> Variations in amplitude</li>
+                        <li><strong>Harmonic Measures:</strong> Noise-to-harmonic ratios</li>
+                        <li><strong>Nonlinear Dynamics:</strong> Complexity measures of voice patterns</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4><i class="fas fa-brain"></i> How It Works</h4>
+                    <p>Machine learning algorithms identify subtle patterns in voice characteristics that are often imperceptible to the human ear but correlate with Parkinson's disease progression.</p>
+                    <p>The system uses a Decision Tree classifier trained on a dataset of voice recordings from both healthy individuals and Parkinson's patients.</p>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4">
+                <i class="fas fa-exclamation-info"></i>
+                <strong>Important:</strong> This tool is for educational and research purposes only and should not be used as a substitute for professional medical diagnosis. Always consult with qualified healthcare providers for medical concerns.
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
