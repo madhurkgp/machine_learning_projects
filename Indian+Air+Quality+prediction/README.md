@@ -51,10 +51,12 @@ A production-ready Django web application that predicts Air Quality Index (AQI) 
    python train_models.py
    ```
    This will:
-   - Process the air quality dataset
+   - Process the air quality dataset (Note Book/data.csv)
    - Train Random Forest regression and classification models
    - Save models to the `models/` directory
    - Display model accuracy scores
+   
+   *Note: Model files are too large for GitHub and must be generated locally*
 
 5. **Run database migrations:**
    ```bash
