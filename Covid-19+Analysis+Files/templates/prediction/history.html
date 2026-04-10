@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+
+{% block title %}Prediction History - {{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="fade-in">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Prediction History</h2>
+                <p class="text-muted">View all past predictions and their results</p>
+            </div>
+            <div class="card-body">
+                <!-- Search and Filter -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search by state name...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-control" id="dateFilter">
+                            <option value="">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-control" id="confidenceFilter">
+                            <option value="">All Confidence Levels</option>
+                            <option value="high">High (80%+)</option>
+                            <option value="medium">Medium (60-80%)</option>
+                            <option value="low">Low (<60%)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="applyFilters()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="me-1">
+                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                            </svg>
+                            Filter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="badge bg-primary fs-6 p-2">Total Predictions</div>
+                            <p class="mt-2 h4">{{ page_obj.paginator.count }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="badge bg-success fs-6 p-2">Avg Confidence</div>
+                            <p class="mt-2 h4">
+                                {% if page_obj %}
+                                    {% with avg_confidence=page_obj.object_list.0.confidence_score %}
+                                        {{ avg_confidence|mul:100|floatformat:1 }}%
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="badge bg-info fs-6 p-2">States Covered</div>
+                            <p class="mt-2 h4">
+                                {% if page_obj %}
+                                    {{ page_obj.object_list|length }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="badge bg-warning fs-6 p-2">Latest Update</div>
+                            <p class="mt-2 h4">
+                                {% if page_obj %}
+                                    {{ page_obj.object_list.0.prediction_date|date:"H:i" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Predictions Table -->
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="predictionsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>State</th>
+                                    <th>Predicted Active</th>
+                                    <th>Predicted Positive</th>
+                                    <th>Predicted Cured</th>
+                                    <th>Predicted Deaths</th>
+                                    <th>Confidence</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prediction in page_obj %}
+                                    <tr>
+                                        <td><span class="badge bg-secondary">#{{ prediction.id }}</span></td>
+                                        <td><strong>{{ prediction.state_name }}</strong></td>
+                                        <td>{{ prediction.predicted_active|default:"N/A" }}</td>
+                                        <td>{{ prediction.predicted_positive|default:"N/A" }}</td>
+                                        <td>{{ prediction.predicted_cured|default:"N/A" }}</td>
+                                        <td>{{ prediction.predicted_death|default:"N/A" }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px; min-width: 80px;">
+                                                <div class="progress-bar {% if prediction.confidence_score >= 0.8 %}bg-success{% elif prediction.confidence_score >= 0.6 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                     role="progressbar" style="width: {{ prediction.confidence_score|mul:100 }}%">
+                                                    {{ prediction.confidence_score|mul:100|floatformat:1 }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ prediction.prediction_date|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="viewDetails({{ prediction.id }})">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                                    </svg>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success" onclick="exportPrediction({{ prediction.id }})">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Prediction history pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" class="text-muted mb-3">
+                            <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                        </svg>
+                        <h4>No Predictions Found</h4>
+                        <p class="text-muted">Start making predictions to see them appear here.</p>
+                        <a href="{% url 'prediction:prediction_form' %}" class="btn btn-primary mt-3">
+                            Make Your First Prediction
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        {% if page_obj %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4 class="card-title">Export Options</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-primary w-100" onclick="exportAllToJSON()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                    <path d="M5 4v3h5.5v12h3V7H19V4z"/>
+                                </svg>
+                                Export All as JSON
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-success w-100" onclick="exportToCSV()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                                </svg>
+                                Export as CSV
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-info w-100" onclick="printHistory()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                    <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+                                </svg>
+                                Print History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Prediction Details Modal -->
+<div class="modal fade" id="predictionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prediction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Store prediction data for client-side operations
+const predictions = [
+    {% for prediction in page_obj %}
+        {
+            id: {{ prediction.id }},
+            state_name: "{{ prediction.state_name }}",
+            predicted_active: {{ prediction.predicted_active|default:0 }},
+            predicted_positive: {{ prediction.predicted_positive|default:0 }},
+            predicted_cured: {{ prediction.predicted_cured|default:0 }},
+            predicted_death: {{ prediction.predicted_death|default:0 }},
+            confidence_score: {{ prediction.confidence_score }},
+            prediction_date: "{{ prediction.prediction_date|date:'c' }}",
+            input_data: {{ prediction.input_data|safe }}
+        }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const dateFilter = document.getElementById('dateFilter').value;
+    const confidenceFilter = document.getElementById('confidenceFilter').value;
+    
+    const rows = document.querySelectorAll('#predictionsTable tbody tr');
+    
+    rows.forEach(row => {
+        const stateName = row.cells[1].textContent.toLowerCase();
+        const confidenceText = row.cells[6].textContent.trim();
+        const confidenceValue = parseFloat(confidenceText);
+        const dateText = row.cells[7].textContent;
+        
+        let showRow = true;
+        
+        // Search filter
+        if (searchTerm && !stateName.includes(searchTerm)) {
+            showRow = false;
+        }
+        
+        // Date filter
+        if (dateFilter) {
+            const predictionDate = new Date(dateText);
+            const now = new Date();
+            
+            switch(dateFilter) {
+                case 'today':
+                    if (predictionDate.toDateString() !== now.toDateString()) {
+                        showRow = false;
+                    }
+                    break;
+                case 'week':
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    if (predictionDate < weekAgo) {
+                        showRow = false;
+                    }
+                    break;
+                case 'month':
+                    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    if (predictionDate < monthAgo) {
+                        showRow = false;
+                    }
+                    break;
+            }
+        }
+        
+        // Confidence filter
+        if (confidenceFilter) {
+            switch(confidenceFilter) {
+                case 'high':
+                    if (confidenceValue < 80) showRow = false;
+                    break;
+                case 'medium':
+                    if (confidenceValue < 60 || confidenceValue >= 80) showRow = false;
+                    break;
+                case 'low':
+                    if (confidenceValue >= 60) showRow = false;
+                    break;
+            }
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+function viewDetails(predictionId) {
+    const prediction = predictions.find(p => p.id === predictionId);
+    if (!prediction) return;
+    
+    const modalContent = document.getElementById('modalContent');
+    modalContent.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Basic Information</h6>
+                <p><strong>State:</strong> ${prediction.state_name}</p>
+                <p><strong>Prediction Date:</strong> ${new Date(prediction.prediction_date).toLocaleString()}</p>
+                <p><strong>Confidence Score:</strong> ${(prediction.confidence_score * 100).toFixed(1)}%</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Predicted Values</h6>
+                <p><strong>Active Cases:</strong> ${prediction.predicted_active.toLocaleString()}</p>
+                <p><strong>Positive Cases:</strong> ${prediction.predicted_positive.toLocaleString()}</p>
+                <p><strong>Cured Cases:</strong> ${prediction.predicted_cured.toLocaleString()}</p>
+                <p><strong>Death Cases:</strong> ${prediction.predicted_death.toLocaleString()}</p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Input Data</h6>
+                <pre>${JSON.stringify(prediction.input_data, null, 2)}</pre>
+            </div>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('predictionModal'));
+    modal.show();
+}
+
+function exportPrediction(predictionId) {
+    const prediction = predictions.find(p => p.id === predictionId);
+    if (!prediction) return;
+    
+    const blob = new Blob([JSON.stringify(prediction, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `prediction_${prediction.state_name}_${prediction.id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function exportAllToJSON() {
+    const blob = new Blob([JSON.stringify(predictions, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `all_predictions_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function exportToCSV() {
+    let csv = 'ID,State,Predicted Active,Predicted Positive,Predicted Cured,Predicted Death,Confidence,Date\n';
+    
+    predictions.forEach(p => {
+        csv += `${p.id},"${p.state_name}",${p.predicted_active},${p.predicted_positive},${p.predicted_cured},${p.predicted_death},${(p.confidence_score * 100).toFixed(1)}%,${new Date(p.prediction_date).toLocaleString()}\n`;
+    });
+    
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `predictions_history_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function printHistory() {
+    window.print();
+}
+
+// Add search functionality
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+</script>
+
+<style>
+@media print {
+    .navbar, .footer, .btn, .modal {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+    }
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Visualization - {{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="fade-in">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">COVID-19 Data Visualization</h2>
+                <p class="text-muted">Interactive charts and graphs showing COVID-19 trends</p>
+            </div>
+            <div class="card-body">
+                <!-- Chart Controls -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label for="chartType" class="form-label">Chart Type</label>
+                        <select class="form-control" id="chartType" onchange="updateChart()">
+                            <option value="line">Line Chart</option>
+                            <option value="bar">Bar Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="dataType" class="form-label">Data Type</label>
+                        <select class="form-control" id="dataType" onchange="updateChart()">
+                            <option value="all">All Data</option>
+                            <option value="active">Active Cases</option>
+                            <option value="positive">Positive Cases</option>
+                            <option value="cured">Cured Cases</option>
+                            <option value="death">Death Cases</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="timeRange" class="form-label">Time Range</label>
+                        <select class="form-control" id="timeRange" onchange="updateChart()">
+                            <option value="7">Last 7 Days</option>
+                            <option value="14">Last 14 Days</option>
+                            <option value="30">Last 30 Days</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Main Chart -->
+                <div class="chart-container">
+                    <canvas id="mainChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="stats-grid mt-4">
+                    <div class="stat-card active">
+                        <div class="stat-number" id="totalActive">0</div>
+                        <div class="stat-label">Total Active</div>
+                    </div>
+                    <div class="stat-card positive">
+                        <div class="stat-number" id="totalPositive">0</div>
+                        <div class="stat-label">Total Positive</div>
+                    </div>
+                    <div class="stat-card cured">
+                        <div class="stat-number" id="totalCured">0</div>
+                        <div class="stat-label">Total Cured</div>
+                    </div>
+                    <div class="stat-card death">
+                        <div class="stat-number" id="totalDeath">0</div>
+                        <div class="stat-label">Total Deaths</div>
+                    </div>
+                </div>
+
+                <!-- Multiple Charts Row -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5>Trend Comparison</h5>
+                            <canvas id="trendChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5>Recovery vs Death Rate</h5>
+                            <canvas id="rateChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- State-wise Comparison -->
+                <div class="chart-container mt-4">
+                    <h5>State-wise Comparison</h5>
+                    <canvas id="stateChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Data from Django context
+const dates = {{ dates|safe }};
+const activeCases = {{ active_cases|safe }};
+const positiveCases = {{ positive_cases|safe }};
+const curedCases = {{ cured_cases|safe }};
+const deathCases = {{ death_cases|safe }};
+
+// Chart configurations
+let mainChart, trendChart, rateChart, stateChart;
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    updateStatistics();
+});
+
+function initializeCharts() {
+    // Main Chart
+    const mainCtx = document.getElementById('mainChart').getContext('2d');
+    mainChart = new Chart(mainCtx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Active Cases',
+                    data: activeCases,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Positive Cases',
+                    data: positiveCases,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Cured Cases',
+                    data: curedCases,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Death Cases',
+                    data: deathCases,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'COVID-19 Cases Over Time'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Trend Chart
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: dates.slice(-7),
+            datasets: [
+                {
+                    label: 'Daily New Cases',
+                    data: calculateDailyNewCases(),
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Rate Chart
+    const rateCtx = document.getElementById('rateChart').getContext('2d');
+    rateChart = new Chart(rateCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Recovery Rate', 'Death Rate', 'Active Rate'],
+            datasets: [{
+                data: calculateRates(),
+                backgroundColor: [
+                    '#10b981',
+                    '#ef4444',
+                    '#f59e0b'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+
+    // State Chart (sample data)
+    const stateCtx = document.getElementById('stateChart').getContext('2d');
+    stateChart = new Chart(stateCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Maharashtra', 'Kerala', 'Karnataka', 'Tamil Nadu', 'Delhi'],
+            datasets: [
+                {
+                    label: 'Active Cases',
+                    data: [55351, 64379, 9668, 7164, 3468],
+                    backgroundColor: '#f59e0b'
+                },
+                {
+                    label: 'Cured Cases',
+                    data: [1863702, 743467, 905751, 806875, 616054],
+                    backgroundColor: '#10b981'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    const chartType = document.getElementById('chartType').value;
+    const dataType = document.getElementById('dataType').value;
+    const timeRange = document.getElementById('timeRange').value;
+
+    // Filter data based on time range
+    let filteredDates = dates;
+    let filteredActive = activeCases;
+    let filteredPositive = positiveCases;
+    let filteredCured = curedCases;
+    let filteredDeath = deathCases;
+
+    if (timeRange !== 'all') {
+        const days = parseInt(timeRange);
+        filteredDates = dates.slice(-days);
+        filteredActive = activeCases.slice(-days);
+        filteredPositive = positiveCases.slice(-days);
+        filteredCured = curedCases.slice(-days);
+        filteredDeath = deathCases.slice(-days);
+    }
+
+    // Update chart data
+    let datasets = [];
+    
+    if (dataType === 'all') {
+        datasets = [
+            {
+                label: 'Active Cases',
+                data: filteredActive,
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Positive Cases',
+                data: filteredPositive,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Cured Cases',
+                data: filteredCured,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Death Cases',
+                data: filteredDeath,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4
+            }
+        ];
+    } else {
+        const dataMap = {
+            'active': { label: 'Active Cases', data: filteredActive, color: '#f59e0b' },
+            'positive': { label: 'Positive Cases', data: filteredPositive, color: '#3b82f6' },
+            'cured': { label: 'Cured Cases', data: filteredCured, color: '#10b981' },
+            'death': { label: 'Death Cases', data: filteredDeath, color: '#ef4444' }
+        };
+        
+        const selectedData = dataMap[dataType];
+        datasets = [{
+            label: selectedData.label,
+            data: selectedData.data,
+            borderColor: selectedData.color,
+            backgroundColor: selectedData.color + '33',
+            tension: 0.4
+        }];
+    }
+
+    // Update chart type and data
+    mainChart.config.type = chartType;
+    mainChart.data.labels = filteredDates;
+    mainChart.data.datasets = datasets;
+    mainChart.update();
+}
+
+function calculateDailyNewCases() {
+    if (positiveCases.length < 2) return positiveCases;
+    
+    const dailyNew = [];
+    for (let i = 1; i < positiveCases.length; i++) {
+        dailyNew.push(Math.max(0, positiveCases[i] - positiveCases[i-1]));
+    }
+    return dailyNew.slice(-7);
+}
+
+function calculateRates() {
+    if (positiveCases.length === 0) return [0, 0, 0];
+    
+    const totalPositive = positiveCases[positiveCases.length - 1] || 1;
+    const totalCured = curedCases[curedCases.length - 1] || 0;
+    const totalDeath = deathCases[deathCases.length - 1] || 0;
+    const totalActive = activeCases[activeCases.length - 1] || 0;
+    
+    const recoveryRate = (totalCured / totalPositive) * 100;
+    const deathRate = (totalDeath / totalPositive) * 100;
+    const activeRate = (totalActive / totalPositive) * 100;
+    
+    return [recoveryRate.toFixed(1), deathRate.toFixed(1), activeRate.toFixed(1)];
+}
+
+function updateStatistics() {
+    if (activeCases.length > 0) {
+        document.getElementById('totalActive').textContent = activeCases[activeCases.length - 1].toLocaleString();
+        document.getElementById('totalPositive').textContent = positiveCases[positiveCases.length - 1].toLocaleString();
+        document.getElementById('totalCured').textContent = curedCases[curedCases.length - 1].toLocaleString();
+        document.getElementById('totalDeath').textContent = deathCases[deathCases.length - 1].toLocaleString();
+    }
+}
+</script>
+{% endblock %}

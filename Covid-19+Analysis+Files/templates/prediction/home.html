@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - {{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="fade-in">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 text-white fw-bold mb-3">COVID-19 Analysis Dashboard</h1>
+            <p class="lead text-white">Real-time predictions and data visualization for COVID-19 cases</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card active">
+                <div class="stat-number">{{ total_stats.total_active|default:0 }}</div>
+                <div class="stat-label">Active Cases</div>
+            </div>
+            <div class="stat-card positive">
+                <div class="stat-number">{{ total_stats.total_positive|default:0 }}</div>
+                <div class="stat-label">Positive Cases</div>
+            </div>
+            <div class="stat-card cured">
+                <div class="stat-number">{{ total_stats.total_cured|default:0 }}</div>
+                <div class="stat-label">Cured Cases</div>
+            </div>
+            <div class="stat-card death">
+                <div class="stat-number">{{ total_stats.total_death|default:0 }}</div>
+                <div class="stat-label">Death Cases</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Quick Actions</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <a href="{% url 'prediction:prediction_form' %}" class="btn btn-primary btn-lg w-100">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                            </svg>
+                            Make Prediction
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="{% url 'prediction:visualization' %}" class="btn btn-success btn-lg w-100">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                            </svg>
+                            View Charts
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <form method="post" action="{% url 'prediction:load_sample_data' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning btn-lg w-100">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                    <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/>
+                                </svg>
+                                Load Sample Data
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="{% url 'prediction:history' %}" class="btn btn-secondary btn-lg w-100">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2">
+                                <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                            </svg>
+                            View History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Data -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Latest COVID-19 Data</h2>
+            </div>
+            <div class="card-body">
+                {% if latest_data %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>Active</th>
+                                    <th>Positive</th>
+                                    <th>Cured</th>
+                                    <th>Deaths</th>
+                                    <th>Recovery Rate</th>
+                                    <th>Death Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in latest_data %}
+                                    <tr>
+                                        <td><strong>{{ data.state_name }}</strong></td>
+                                        <td>{{ data.active_cases|default:0 }}</td>
+                                        <td>{{ data.positive_cases|default:0 }}</td>
+                                        <td>{{ data.cured_cases|default:0 }}</td>
+                                        <td>{{ data.death_cases|default:0 }}</td>
+                                        <td>
+                                            <span class="badge bg-success">{{ data.recovery_rate }}%</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ data.death_rate }}%</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" class="text-muted mb-3">
+                            <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                        </svg>
+                        <h4>No Data Available</h4>
+                        <p class="text-muted">Load sample data to get started with the dashboard.</p>
+                        <form method="post" action="{% url 'prediction:load_sample_data' %}" class="mt-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                Load Sample Data
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Predictions -->
+        {% if recent_predictions %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Predictions</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>Predicted Active</th>
+                                    <th>Predicted Positive</th>
+                                    <th>Predicted Cured</th>
+                                    <th>Predicted Deaths</th>
+                                    <th>Confidence</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prediction in recent_predictions %}
+                                    <tr>
+                                        <td><strong>{{ prediction.state_name }}</strong></td>
+                                        <td>{{ prediction.predicted_active }}</td>
+                                        <td>{{ prediction.predicted_positive }}</td>
+                                        <td>{{ prediction.predicted_cured }}</td>
+                                        <td>{{ prediction.predicted_death }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {{ prediction.confidence_score|mul:100 }}%">
+                                                    {{ prediction.confidence_score|mul:100|floatformat:1 }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ prediction.prediction_date|date:"H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'prediction:history' %}" class="btn btn-outline-primary">View All Predictions</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
