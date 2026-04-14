@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Zomato Analysis{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-gradient text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-star me-3"></i>Restaurant Rating Predictor
+                </h1>
+                <p class="lead mb-4">
+                    Predict restaurant ratings using advanced Machine Learning algorithms. 
+                    Get insights based on location, cuisine type, cost, and other features.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="#prediction-form" class="btn btn-light btn-lg">
+                        <i class="fas fa-magic me-2"></i>Try Prediction
+                    </a>
+                    <a href="{% url 'restaurant:analytics' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chart-bar me-2"></i>View Analytics
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-utensils display-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-md-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-brain fa-3x text-primary"></i>
+                    </div>
+                    <h4>ML Powered</h4>
+                    <p class="text-muted">Uses Random Forest, Linear Regression, and Decision Tree algorithms</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-bullseye fa-3x text-success"></i>
+                    </div>
+                    <h4>High Accuracy</h4>
+                    <p class="text-muted">Achieves up to 87.5% accuracy with Random Forest model</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-tachometer-alt fa-3x text-warning"></i>
+                    </div>
+                    <h4>Real-time</h4>
+                    <p class="text-muted">Get instant predictions with confidence scores</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Prediction Form Section -->
+<section id="prediction-form" class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-magic me-2"></i>Predict Restaurant Rating
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post" id="predictionForm">
+                            {% csrf_token %}
+                            
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between mb-4">
+                                <a href="{% url 'restaurant:load_sample_data' %}" class="btn btn-outline-info">
+                                    <i class="fas fa-database me-2"></i>Load Sample Data
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                                    <i class="fas fa-eraser me-2"></i>Clear Form
+                                </button>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-shopping-cart me-2"></i>Online Order
+                                    </label>
+                                    <div class="form-check form-switch">
+                                        {{ form.online_order }}
+                                        <label class="form-check-label" for="{{ form.online_order.id_for_label }}">
+                                            Available for online ordering
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-chair me-2"></i>Table Booking
+                                    </label>
+                                    <div class="form-check form-switch">
+                                        {{ form.book_table }}
+                                        <label class="form-check-label" for="{{ form.book_table.id_for_label }}">
+                                            Table booking available
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.votes.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-vote-yea me-2"></i>Number of Votes
+                                    </label>
+                                    {{ form.votes }}
+                                    <div class="form-text">{{ form.votes.help_text }}</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.approx_cost.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-rupee-sign me-2"></i>Cost for Two (INR)
+                                    </label>
+                                    {{ form.approx_cost }}
+                                    <div class="form-text">{{ form.approx_cost.help_text }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.location.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Location
+                                    </label>
+                                    {{ form.location }}
+                                    <div class="form-text">{{ form.location.help_text }}</div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.rest_type.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-store me-2"></i>Restaurant Type
+                                    </label>
+                                    {{ form.rest_type }}
+                                    <div class="form-text">{{ form.rest_type.help_text }}</div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="{{ form.cuisines.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-pizza-slice me-2"></i>Cuisine Type
+                                    </label>
+                                    {{ form.cuisines }}
+                                    <div class="form-text">{{ form.cuisines.help_text }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-magic me-2"></i>Predict Rating
+                                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="loadingSpinner"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Predictions Section -->
+{% if recent_predictions %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h3 class="text-center mb-4">
+            <i class="fas fa-history me-2"></i>Recent Predictions
+        </h3>
+        <div class="row">
+            {% for prediction in recent_predictions %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title">{{ prediction.location }}</h6>
+                            <span class="badge bg-primary">{{ prediction.model_used }}</span>
+                        </div>
+                        <p class="card-text">
+                            <small class="text-muted">{{ prediction.rest_type }} - {{ prediction.cuisines }}</small>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-star text-warning"></i>
+                                <strong>{{ prediction.predicted_rating }}/5.0</strong>
+                            </div>
+                            <small class="text-muted">{{ prediction.created_at|date:"M d, H:i" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'restaurant:history' %}" class="btn btn-outline-primary">
+                View All Predictions <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Model Performance Section -->
+{% if best_model %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <h3 class="mb-4">
+                    <i class="fas fa-trophy me-2 text-warning"></i>Best Performing Model
+                </h3>
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="text-primary">{{ best_model.model_name }}</h4>
+                        <p class="lead">R² Score: <strong>{{ best_model.r2_score|floatformat:3 }}</strong></p>
+                        <p class="text-muted">Based on {{ best_model.training_samples }} training samples</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function clearForm() {
+    document.getElementById('predictionForm').reset();
+}
+
+// Show loading spinner when form is submitted
+document.getElementById('predictionForm').addEventListener('submit', function() {
+    document.getElementById('loadingSpinner').classList.remove('d-none');
+});
+
+// Add smooth scrolling
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+</script>
+{% endblock %}

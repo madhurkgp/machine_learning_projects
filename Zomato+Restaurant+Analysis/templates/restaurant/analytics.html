@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - Zomato Analysis{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-6 fw-bold">
+            <i class="fas fa-chart-line me-3"></i>Analytics Dashboard
+        </h1>
+        <p class="lead text-muted">Comprehensive insights from restaurant predictions</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ top_locations|length }}</h4>
+                            <small>Top Locations</small>
+                        </div>
+                        <i class="fas fa-map-marker-alt fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ model_stats|length }}</h4>
+                            <small>ML Models</small>
+                        </div>
+                        <i class="fas fa-brain fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ rating_dist|length }}</h4>
+                            <small>Rating Ranges</small>
+                        </div>
+                        <i class="fas fa-star fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">Live</h4>
+                            <small>Data Stream</small>
+                        </div>
+                        <i class="fas fa-satellite-dish fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Top Locations by Predictions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="locationsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Model Performance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="modelChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Distribution & Model Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-area me-2"></i>Rating Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ratingDistChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>Model Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Predictions</th>
+                                    <th>Avg Rating</th>
+                                    <th>Avg Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model_name, stats in model_stats.items %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary">{{ model_name }}</span>
+                                    </td>
+                                    <td>{{ stats.count }}</td>
+                                    <td>{{ stats.avg_rating|floatformat:2 }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="height: 15px; width: 50px;">
+                                                <div class="progress-bar bg-success" data-width="{{ stats.avg_confidence|floatformat:0 }}" style="width: 0%"></div>
+                                            </div>
+                                            <small>{{ stats.avg_confidence|floatformat:2 }}</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Locations Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Top Locations Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Location</th>
+                                    <th>Prediction Count</th>
+                                    <th>Average Rating</th>
+                                    <th>Performance</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for location in top_locations %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                            <strong>{{ location.location }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ location.count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-star text-warning me-1"></i>
+                                            {{ location.avg_rating|floatformat:2 }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if location.avg_rating >= 4.0 %}
+                                            <span class="badge bg-success">Excellent</span>
+                                        {% elif location.avg_rating >= 3.5 %}
+                                            <span class="badge bg-primary">Good</span>
+                                        {% elif location.avg_rating >= 3.0 %}
+                                            <span class="badge bg-warning">Average</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Below Average</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="fas fa-arrow-up text-success"></i> Rising
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Key Insights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="insight-item">
+                                <h6><i class="fas fa-star text-warning me-2"></i>Rating Patterns</h6>
+                                <p class="text-muted small">
+                                    Most predictions cluster around 3.5-4.0 rating range, indicating realistic expectations for restaurant quality.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="insight-item">
+                                <h6><i class="fas fa-map-marked-alt text-primary me-2"></i>Location Trends</h6>
+                                <p class="text-muted small">
+                                    BTM and Koramangala show highest prediction volumes, reflecting their popularity as dining destinations.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="insight-item">
+                                <h6><i class="fas fa-robot text-success me-2"></i>Model Accuracy</h6>
+                                <p class="text-muted small">
+                                    Random Forest consistently outperforms other models with higher confidence scores and accuracy.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Data stored in hidden elements for JavaScript -->
+<div id="chart-data" style="display: none;">
+    <div id="locations-labels">{% for location in top_locations %}{{ location.location|escapejs }}{% if not forloop.last %},{% endif %}{% endfor %}</div>
+    <div id="locations-data">{% for location in top_locations %}{{ location.count }}{% if not forloop.last %},{% endif %}{% endfor %}</div>
+    <div id="model-labels">{% for model_name in model_stats.keys %}{{ model_name|escapejs }}{% if not forloop.last %},{% endif %}{% endfor %}</div>
+    <div id="model-data">{% for model_name, stats in model_stats.items %}{{ stats.count }}{% if not forloop.last %},{% endif %}{% endfor %}</div>
+    <div id="rating-labels">{% for range_name in rating_dist.keys %}{{ range_name|escapejs }}{% if not forloop.last %},{% endif %}{% endfor %}</div>
+    <div id="rating-data">{% for range_name, count in rating_dist.items %}{{ count }}{% if not forloop.last %},{% endif %}{% endfor %}</div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get data from hidden elements
+    const locationsData = {
+        labels: document.getElementById('locations-labels').textContent.split(','),
+        data: document.getElementById('locations-data').textContent.split(',').map(Number)
+    };
+    
+    const modelData = {
+        labels: document.getElementById('model-labels').textContent.split(','),
+        data: document.getElementById('model-data').textContent.split(',').map(Number)
+    };
+    
+    const ratingData = {
+        labels: document.getElementById('rating-labels').textContent.split(','),
+        data: document.getElementById('rating-data').textContent.split(',').map(Number)
+    };
+
+    // Locations Chart
+    const locationsCtx = document.getElementById('locationsChart').getContext('2d');
+    const locationsChart = new Chart(locationsCtx, {
+        type: 'bar',
+        data: {
+            labels: locationsData.labels,
+            datasets: [{
+                label: 'Prediction Count',
+                data: locationsData.data,
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Model Performance Chart
+    const modelCtx = document.getElementById('modelChart').getContext('2d');
+    const modelChart = new Chart(modelCtx, {
+        type: 'doughnut',
+        data: {
+            labels: modelData.labels,
+            datasets: [{
+                data: modelData.data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 205, 86, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Rating Distribution Chart
+    const ratingDistCtx = document.getElementById('ratingDistChart').getContext('2d');
+    const ratingDistChart = new Chart(ratingDistCtx, {
+        type: 'line',
+        data: {
+            labels: ratingData.labels,
+            datasets: [{
+                label: 'Number of Predictions',
+                data: ratingData.data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Add animation to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-bar[data-width]');
+    progressBars.forEach((bar, index) => {
+        const targetWidth = bar.getAttribute('data-width') + '%';
+        setTimeout(() => {
+            bar.style.transition = 'width 0.5s ease-out';
+            bar.style.width = targetWidth;
+        }, index * 100);
+    });
+});
+</script>
+
+<style>
+.insight-item {
+    padding: 1rem;
+    border-left: 4px solid #007bff;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    border-radius: 0 0.25rem 0.25rem 0;
+}
+
+.insight-item h6 {
+    color: #007bff;
+    margin-bottom: 0.5rem;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
