@@ -335,6 +335,15 @@ CMD ["gunicorn", "zomato_analysis.wsgi:application", "--bind", "0.0.0.0:8000"]
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Dataset
+
+The original Zomato Bangalore restaurants dataset (547MB) is not included in this repository due to GitHub's file size limits. You can download the dataset from:
+
+- **Kaggle**: [Zomato Bangalore Restaurants Dataset](https://www.kaggle.com/datasets/himanshupoddar/zomato-bangalore-restaurants)
+- **Original Source**: Various public datasets for restaurant analysis
+
+Once downloaded, place the `zomato.csv` file in the `Zomato Restaurant Analysis/` directory to train custom models.
+
 ## Acknowledgments
 
 - **Zomato**: For providing the restaurant dataset
