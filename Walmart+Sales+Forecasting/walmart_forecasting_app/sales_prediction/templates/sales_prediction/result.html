@@ -1,0 +1,122 @@
+{% extends 'sales_prediction/base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+    <!-- Header Section -->
+    <div class="header-section">
+        <h1><i class="fas fa-chart-line"></i> Prediction Result</h1>
+        <p>Your sales forecast has been generated successfully</p>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Main Result Card -->
+                <div class="card border-0 shadow-lg mb-4 fade-in">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-chart-pie fa-4x text-primary"></i>
+                        </div>
+                        
+                        <h2 class="mb-3">Predicted Weekly Sales</h2>
+                        
+                        <div class="prediction-amount mb-4">
+                            ${{ prediction.predicted_sales|floatformat:2 }}
+                        </div>
+                        
+                        {% if prediction.confidence_score %}
+                            <div class="mb-4">
+                                <span class="confidence-badge">
+                                    <i class="fas fa-shield-alt"></i>
+                                    {{ prediction.confidence_score|floatformat:2 }} Confidence Score
+                                </span>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-store"></i> Store Information</h5>
+                                <p><strong>Store:</strong> {{ prediction.store }}</p>
+                                <p><strong>Department:</strong> {{ prediction.department }}</p>
+                                <p><strong>Store Size:</strong> {{ prediction.size|floatformat:0 }} sq ft</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-calendar"></i> Time Period</h5>
+                                <p><strong>Week:</strong> {{ prediction.week }}</p>
+                                <p><strong>Year:</strong> {{ prediction.year }}</p>
+                                <p><strong>Holiday:</strong> 
+                                    {% if prediction.is_holiday %}
+                                        <span class="badge bg-warning text-dark">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-thermometer-half"></i> Economic Factors</h5>
+                                <p><strong>Temperature:</strong> {{ prediction.temperature }}°F</p>
+                                <p><strong>CPI:</strong> {{ prediction.cpi }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-users"></i> Labor Market</h5>
+                                <p><strong>Unemployment:</strong> {{ prediction.unemployment }}%</p>
+                                <p><strong>Model Used:</strong> {{ prediction.model_used|title }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> 
+                                Generated on {{ prediction.created_at|date:"F d, Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="text-center mb-4">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-plus"></i> New Prediction
+                    </a>
+                    <a href="{% url 'prediction_history' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-history"></i> View History
+                    </a>
+                </div>
+                
+                <!-- Interpretation Guide -->
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Understanding Your Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-dollar-sign"></i> Sales Prediction</h6>
+                                <p class="text-muted">The predicted weekly sales amount based on historical data patterns and current conditions.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-shield-alt"></i> Confidence Score</h6>
+                                <p class="text-muted">Indicates how reliable the prediction is. Higher scores (closer to 1.0) mean more accurate predictions.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-light mt-3">
+                            <h6><i class="fas fa-lightbulb"></i> Key Insights</h6>
+                            <ul class="mb-0">
+                                <li>Holiday weeks typically show higher sales volumes</li>
+                                <li>Store size and department type significantly impact sales</li>
+                                <li>Economic factors like CPI and unemployment affect consumer spending</li>
+                                <li>Seasonal patterns are captured in the week-based analysis</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
