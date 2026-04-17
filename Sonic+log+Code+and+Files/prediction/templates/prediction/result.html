@@ -1,0 +1,224 @@
+{% extends 'prediction/base.html' %}
+
+{% block title %}Prediction Result{% endblock %}
+
+{% block content %}
+<!-- Result Header -->
+<div class="hero-section">
+    <div class="container text-center">
+        <i class="fas fa-check-circle fa-4x mb-3"></i>
+        <h1 class="display-4 fw-bold mb-3">Prediction Complete!</h1>
+        <p class="lead">Your sonic log predictions have been generated successfully.</p>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="container">
+    <div class="row">
+        <!-- Prediction Results -->
+        <div class="col-lg-8">
+            <div class="prediction-result">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-chart-line me-2"></i>Prediction Results
+                </h3>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="metric-card">
+                            <h5><i class="fas fa-tachometer-alt me-2"></i>DTC</h5>
+                            <p class="text-muted mb-2">Compressional Travel-time</p>
+                            <div class="metric-value">{{ prediction.dtc_predicted|floatformat:2 }}</div>
+                            <small class="text-muted">nanoseconds per foot</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="metric-card">
+                            <h5><i class="fas fa-wave-square me-2"></i>DTS</h5>
+                            <p class="text-muted mb-2">Shear Travel-time</p>
+                            <div class="metric-value">{{ prediction.dts_predicted|floatformat:2 }}</div>
+                            <small class="text-muted">nanoseconds per foot</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-brain me-2"></i>{{ prediction.get_prediction_method_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Input Data Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>Input Data Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>CAL (Caliper):</strong></td>
+                                    <td>{{ prediction.cal|floatformat:4 }} inches</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CNC (Neutron):</strong></td>
+                                    <td>{{ prediction.cnc|floatformat:4 }} dec</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>GR (Gamma Ray):</strong></td>
+                                    <td>{{ prediction.gr|floatformat:2 }} API</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>HRD (Deep Resistivity):</strong></td>
+                                    <td>{{ prediction.hrd|floatformat:4 }} Ohm/m</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>HRM (Medium Resistivity):</strong></td>
+                                    <td>{{ prediction.hrm|floatformat:4 }} Ohm/m</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>PE (Photo-electric):</strong></td>
+                                    <td>{{ prediction.pe|floatformat:4 }} Barn</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ZDEN (Density):</strong></td>
+                                    <td>{{ prediction.zden|floatformat:4 }} g/m³</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Prediction Time:</strong></td>
+                                    <td>{{ prediction.created_at|date:"H:i:s" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Actions -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'prediction:home' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>New Prediction
+                        </a>
+                        <a href="{% url 'prediction:detail' prediction.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>View Details
+                        </a>
+                        <a href="{% url 'prediction:history' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-history me-2"></i>View History
+                        </a>
+                        <button onclick="window.print()" class="btn btn-outline-info">
+                            <i class="fas fa-print me-2"></i>Print Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Model Info -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Model Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>Algorithm Used</h6>
+                    <p>{{ prediction.get_prediction_method_display }}</p>
+                    
+                    <h6>Accuracy Metrics</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>DTC R²:</strong> 0.982</li>
+                        <li><strong>DTS R²:</strong> 0.999</li>
+                        <li><strong>DTC RMSE:</strong> 3.17 ns/ft</li>
+                        <li><strong>DTS RMSE:</strong> 2.34 ns/ft</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            This prediction uses advanced XGBoost models with Wavelet Transformation for enhanced accuracy.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Interpretation Guide -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-book me-2"></i>Interpretation Guide
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6>DTC Values</h6>
+                    <ul class="small">
+                        <li><strong>40-80 ns/ft:</strong> Consolidated formations</li>
+                        <li><strong>80-120 ns/ft:</strong> Intermediate formations</li>
+                        <li><strong>>120 ns/ft:</strong> Unconsolidated formations</li>
+                    </ul>
+                    
+                    <h6>DTS Values</h6>
+                    <ul class="small">
+                        <li><strong>80-150 ns/ft:</strong> Hard formations</li>
+                        <li><strong>150-250 ns/ft:</strong> Medium formations</li>
+                        <li><strong>>250 ns/ft:</strong> Soft formations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Ready for another prediction?</h5>
+                    <p class="text-muted">Continue analyzing your well log data with our advanced ML models.</p>
+                    <a href="{% url 'prediction:home' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Make New Prediction
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add animation to metric cards
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.metric-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+});
+
+// Print functionality
+function printResults() {
+    window.print();
+}
+</script>
+{% endblock %}

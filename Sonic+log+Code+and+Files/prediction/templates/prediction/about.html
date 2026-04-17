@@ -1,0 +1,251 @@
+{% extends 'prediction/base.html' %}
+
+{% block title %}About Sonic Log Predictor{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-wave-square me-3"></i>About Sonic Log Predictor
+        </h1>
+        <p class="lead">Advanced Machine Learning for Well Log Analysis</p>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="container">
+    <!-- Project Overview -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h2><i class="fas fa-project-diagram me-2"></i>Project Overview</h2>
+                    <p class="lead">
+                        The Sonic Log Predictor is an advanced machine learning system designed to predict 
+                        DTC (Compressional Travel-time) and DTS (Shear Travel-time) values from well log data 
+                        using state-of-the-art XGBoost algorithms enhanced with Wavelet Transformation.
+                    </p>
+                    <p>
+                        This project demonstrates the application of signal processing techniques and machine learning 
+                        to solve real-world problems in petroleum engineering and geoscience. By leveraging wavelet 
+                        transformation, we achieve superior accuracy compared to traditional methods.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <i class="fas fa-brain fa-8x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h5>High Accuracy</h5>
+                    <p>Achieves R² scores of 0.982 for DTC and 0.999 for DTS predictions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-wave-square fa-3x text-info mb-3"></i>
+                    <h5>Wavelet Transformation</h5>
+                    <p>Advanced signal processing for enhanced feature extraction</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tachometer-alt fa-3x text-success mb-3"></i>
+                    <h5>Real-time Processing</h5>
+                    <p>Fast predictions suitable for field applications</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Details -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Technical Implementation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <h5>Machine Learning Pipeline</h5>
+                    <ol>
+                        <li><strong>Data Preprocessing:</strong> Handle missing values, outliers, and negative values</li>
+                        <li><strong>Feature Engineering:</strong> Log transformation for resistivity logs</li>
+                        <li><strong>Wavelet Transformation:</strong> Apply db4 wavelet to CNC log</li>
+                        <li><strong>Model Training:</strong> XGBoost with optimized hyperparameters</li>
+                        <li><strong>Prediction:</strong> Real-time inference with confidence scoring</li>
+                    </ol>
+                    
+                    <h5>Input Features</h5>
+                    <ul>
+                        <li><strong>CAL:</strong> Caliper (Inch)</li>
+                        <li><strong>CNC:</strong> Neutron Log (decimal)</li>
+                        <li><strong>GR:</strong> Gamma Ray (API)</li>
+                        <li><strong>HRD:</strong> Deep Resistivity (Ohm/m)</li>
+                        <li><strong>HRM:</strong> Medium Resistivity (Ohm/m)</li>
+                        <li><strong>PE:</strong> Photo-electric Factor (Barn)</li>
+                        <li><strong>ZDEN:</strong> Density (g/m³)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Model Performance
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <h5>DTC Prediction Results</h5>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>R² Score:</span>
+                            <strong>0.982 (with Wavelet)</strong>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: 98.2%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>RMSE:</span>
+                            <strong>3.17 ns/ft</strong>
+                        </div>
+                    </div>
+                    
+                    <h5>DTS Prediction Results</h5>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>R² Score:</span>
+                            <strong>0.999 (with Wavelet)</strong>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: 99.9%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>RMSE:</span>
+                            <strong>2.34 ns/ft</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Wavelet transformation significantly improves prediction accuracy compared to baseline models.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technology Stack -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-layer-group me-2"></i>Technology Stack
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Machine Learning</h5>
+                    <ul>
+                        <li><strong>XGBoost:</strong> Gradient boosting framework</li>
+                        <li><strong>PyWavelets:</strong> Wavelet transformation library</li>
+                        <li><strong>scikit-learn:</strong> Machine learning utilities</li>
+                        <li><strong>pandas:</strong> Data manipulation</li>
+                        <li><strong>numpy:</strong> Numerical computing</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Web Development</h5>
+                    <ul>
+                        <li><strong>Django:</strong> Web framework</li>
+                        <li><strong>Bootstrap 5:</strong> Responsive UI framework</li>
+                        <li><strong>Chart.js:</strong> Data visualization</li>
+                        <li><strong>SQLite:</strong> Database (configurable)</li>
+                        <li><strong>HTML5/CSS3:</strong> Modern web standards</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-lightbulb me-2"></i>Applications & Use Cases
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6><i class="fas fa-oil-can me-2"></i>Petroleum Engineering</h6>
+                    <p>Formation evaluation and reservoir characterization</p>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="fas fa-mountain me-2"></i>Geoscience</h6>
+                    <p>Subsurface formation analysis and modeling</p>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="fas fa-hard-hat me-2"></i>Field Operations</h6>
+                    <p>Real-time decision support during drilling</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team & Credits -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-users me-2"></i>Project Information
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Data Source</h6>
+                    <p>Synthetic Sonic Log Curves Generation Contest dataset</p>
+                    
+                    <h6>Development</h6>
+                    <p>Built with Django and advanced ML algorithms for production use</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Version</h6>
+                    <p>Version 1.0 - Production Ready</p>
+                    
+                    <h6>License</h6>
+                    <p>Open source for educational and research purposes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center mt-4">
+        <h3>Ready to Try It Out?</h3>
+        <p class="text-muted">Experience the power of ML-enhanced well log analysis</p>
+        <a href="{% url 'prediction:home' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket me-2"></i>Make Your First Prediction
+        </a>
+    </div>
+</div>
+{% endblock %}

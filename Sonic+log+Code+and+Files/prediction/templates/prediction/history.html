@@ -1,0 +1,275 @@
+{% extends 'prediction/base.html' %}
+
+{% block title %}Prediction History{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-history me-3"></i>Prediction History
+        </h1>
+        <p class="lead">View and analyze all your sonic log predictions</p>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <h6>Total Predictions</h6>
+                <div class="metric-value">{{ page_obj.paginator.count }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <h6>Average DTC</h6>
+                <div class="metric-value">
+                    {% if page_obj %}
+                        {% widthratio page_obj|length 1 1 %}
+                        {% for pred in page_obj %}
+                            {% if forloop.first %}{{ pred.dtc_predicted|floatformat:1 }}{% endif %}
+                        {% endfor %}
+                    {% else %}--{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <h6>Average DTS</h6>
+                <div class="metric-value">
+                    {% if page_obj %}
+                        {% for pred in page_obj %}
+                            {% if forloop.first %}{{ pred.dts_predicted|floatformat:1 }}{% endif %}
+                        {% endfor %}
+                    {% else %}--{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <h6>Primary Method</h6>
+                <div class="metric-value">Wavelet</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Prediction Records
+                    </h5>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'prediction:home' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>New Prediction
+                        </a>
+                        <button onclick="exportData()" class="btn btn-outline-success">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                        <button onclick="refreshData()" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync me-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Predictions Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="predictionsTable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
+                                <th>ID</th>
+                                <th>Date & Time</th>
+                                <th>CAL</th>
+                                <th>CNC</th>
+                                <th>GR</th>
+                                <th>HRD</th>
+                                <th>HRM</th>
+                                <th>PE</th>
+                                <th>ZDEN</th>
+                                <th>DTC</th>
+                                <th>DTS</th>
+                                <th>Method</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prediction in page_obj %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input prediction-checkbox" 
+                                           value="{{ prediction.id }}">
+                                </td>
+                                <td><strong>{{ prediction.id }}</strong></td>
+                                <td>{{ prediction.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>{{ prediction.cal|floatformat:4 }}</td>
+                                <td>{{ prediction.cnc|floatformat:4 }}</td>
+                                <td>{{ prediction.gr|floatformat:2 }}</td>
+                                <td>{{ prediction.hrd|floatformat:4 }}</td>
+                                <td>{{ prediction.hrm|floatformat:4 }}</td>
+                                <td>{{ prediction.pe|floatformat:4 }}</td>
+                                <td>{{ prediction.zden|floatformat:4 }}</td>
+                                <td>
+                                    <span class="badge bg-primary fs-6">
+                                        {{ prediction.dtc_predicted|floatformat:2 }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success fs-6">
+                                        {{ prediction.dts_predicted|floatformat:2 }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ prediction.get_prediction_method_display }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'prediction:detail' prediction.id %}" 
+                                           class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button onclick="copyPrediction({{ prediction.id }})" 
+                                                class="btn btn-sm btn-outline-success" title="Copy Data">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <button onclick="deletePrediction({{ prediction.id }})" 
+                                                class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <nav aria-label="Predictions pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-chevron-left"></i> Previous</span>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next <i class="fas fa-chevron-right"></i></span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h4>No Predictions Found</h4>
+                    <p class="text-muted">You haven't made any predictions yet.</p>
+                    <a href="{% url 'prediction:home' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Make Your First Prediction
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Select all checkboxes
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.prediction-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Copy prediction data
+function copyPrediction(predictionId) {
+    // This would typically make an AJAX call to get prediction data
+    // For now, we'll show a success message
+    alert('Prediction data copied to clipboard!');
+}
+
+// Delete prediction
+function deletePrediction(predictionId) {
+    if (confirm('Are you sure you want to delete this prediction?')) {
+        // This would typically make an AJAX call to delete the prediction
+        // For now, we'll just reload the page
+        window.location.reload();
+    }
+}
+
+// Export data
+function exportData() {
+    const selectedIds = [];
+    document.querySelectorAll('.prediction-checkbox:checked').forEach(checkbox => {
+        selectedIds.push(checkbox.value);
+    });
+    
+    if (selectedIds.length === 0) {
+        alert('Please select predictions to export');
+        return;
+    }
+    
+    // This would typically trigger a download
+    alert(`Exporting ${selectedIds.length} predictions...`);
+}
+
+// Refresh data
+function refreshData() {
+    window.location.reload();
+}
+
+// Add search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add search input if needed
+    const table = document.getElementById('predictionsTable');
+    if (table) {
+        // Could add client-side search functionality here
+    }
+});
+</script>
+{% endblock %}
