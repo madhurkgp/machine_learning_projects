@@ -1,0 +1,280 @@
+{% extends 'audio_app/base.html' %}
+
+{% block title %}Analysis Results - {{ analysis.audio_file.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fw-bold">
+                    <i class="fas fa-chart-bar me-2"></i>Analysis Results
+                </h1>
+                <div>
+                    <a href="{% url 'audio_app:analyze_audio' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Analyze
+                    </a>
+                    <a href="{% url 'audio_app:home' %}" class="btn btn-primary">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-audio me-2"></i>{{ analysis.audio_file.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-value">{{ analysis.audio_file.duration|floatformat:2 }}</div>
+                                <small class="text-muted">Duration (seconds)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-value">{{ analysis.audio_file.sample_rate }}</div>
+                                <small class="text-muted">Sample Rate (Hz)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-value">{{ analysis.frame_size }}</div>
+                                <small class="text-muted">Frame Size</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-value">{{ analysis.hop_length }}</div>
+                                <small class="text-muted">Hop Length</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Domain Features -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Time Domain Features
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Amplitude Envelope</span>
+                            <span class="badge bg-primary">{{ analysis.amplitude_envelope_avg|floatformat:4 }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: {% widthratio analysis.amplitude_envelope_avg 1 100 %}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Zero Crossing Rate</span>
+                            <span class="badge bg-success">{{ analysis.zero_crossing_rate_avg|floatformat:4 }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {% widthratio analysis.zero_crossing_rate_avg 1 1000 %}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>RMS Energy</span>
+                            <span class="badge bg-info">{{ analysis.rms_energy_avg|floatformat:4 }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: {% widthratio analysis.rms_energy_avg 1 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frequency Domain Features -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-wave-square me-2"></i>Frequency Domain Features
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Spectral Centroid</span>
+                            <span class="badge bg-warning text-dark">{{ analysis.spectral_centroid_avg|floatformat:2 }} Hz</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" style="width: {% widthratio analysis.spectral_centroid_avg 100 100 %}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Spectral Bandwidth</span>
+                            <span class="badge bg-danger">{{ analysis.spectral_bandwidth_avg|floatformat:2 }} Hz</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-danger" style="width: {% widthratio analysis.spectral_bandwidth_avg 100 100 %}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Spectral Rolloff</span>
+                            <span class="badge bg-secondary">{{ analysis.spectral_rolloff_avg|floatformat:2 }} Hz</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-secondary" style="width: {% widthratio analysis.spectral_rolloff_avg 100 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MFCC Features -->
+    {% if analysis.mfcc_features %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-brain me-2"></i>MFCC Features (Mel-Frequency Cepstral Coefficients)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for key, value in analysis.mfcc_features.items %}
+                            {% if 'mean' in key %}
+                                <div class="col-md-3 col-sm-6 mb-3">
+                                    <div class="text-center">
+                                        <div class="stats-value">{{ value|floatformat:4 }}</div>
+                                        <small class="text-muted">{{ key|upper }}</small>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Analysis Insights -->
+    {% if insights %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Analysis Insights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for insight in insights %}
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex">
+                                    <i class="fas fa-info-circle text-primary me-3 mt-1"></i>
+                                    <p class="mb-0">{{ insight }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Export Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download me-2"></i>Export Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-primary w-100" onclick="exportJSON()">
+                                <i class="fas fa-file-code me-2"></i>Export as JSON
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-success w-100" onclick="exportCSV()">
+                                <i class="fas fa-file-csv me-2"></i>Export as CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function exportJSON() {
+    const data = {
+        audio_file: "{{ analysis.audio_file.name|escapejs }}",
+        analysis_date: "{{ analysis.analysis_date|date:'c'|escapejs }}",
+        duration: {{ analysis.audio_file.duration|default:0 }},
+        sample_rate: {{ analysis.audio_file.sample_rate|default:0 }},
+        features: {
+            amplitude_envelope_avg: {{ analysis.amplitude_envelope_avg|default:0 }},
+            zero_crossing_rate_avg: {{ analysis.zero_crossing_rate_avg|default:0 }},
+            rms_energy_avg: {{ analysis.rms_energy_avg|default:0 }},
+            spectral_centroid_avg: {{ analysis.spectral_centroid_avg|default:0 }},
+            spectral_bandwidth_avg: {{ analysis.spectral_bandwidth_avg|default:0 }},
+            spectral_rolloff_avg: {{ analysis.spectral_rolloff_avg|default:0 }}
+        }
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'audio_analysis_{{ analysis.audio_file.name|escapejs }}.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportCSV() {
+    let csv = 'Feature,Value\\n';
+    csv += 'Duration,{{ analysis.audio_file.duration|default:0 }}\\n';
+    csv += 'Sample Rate,{{ analysis.audio_file.sample_rate|default:0 }}\\n';
+    csv += 'Amplitude Envelope,{{ analysis.amplitude_envelope_avg|default:0 }}\\n';
+    csv += 'Zero Crossing Rate,{{ analysis.zero_crossing_rate_avg|default:0 }}\\n';
+    csv += 'RMS Energy,{{ analysis.rms_energy_avg|default:0 }}\\n';
+    csv += 'Spectral Centroid,{{ analysis.spectral_centroid_avg|default:0 }}\\n';
+    csv += 'Spectral Bandwidth,{{ analysis.spectral_bandwidth_avg|default:0 }}\\n';
+    csv += 'Spectral Rolloff,{{ analysis.spectral_rolloff_avg|default:0 }}\\n';
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'audio_analysis_{{ analysis.audio_file.name|escapejs }}.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

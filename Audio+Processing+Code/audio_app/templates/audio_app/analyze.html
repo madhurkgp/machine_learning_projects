@@ -1,0 +1,131 @@
+{% extends 'audio_app/base.html' %}
+
+{% block title %}Analyze Audio - Audio Processing ML{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fw-bold">
+                    <i class="fas fa-chart-line me-2"></i>Analyze Audio Files
+                </h1>
+                <a href="{% url 'audio_app:home' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if unanalyzed_files %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-audio me-2"></i>Uploaded Audio Files
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Upload Date</th>
+                                        <th>File Size</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for audio_file in unanalyzed_files %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-music me-2 text-primary"></i>
+                                            {{ audio_file.name }}
+                                        </td>
+                                        <td>{{ audio_file.upload_date|date:"M d, Y H:i" }}</td>
+                                        <td>{{ audio_file.audio_file.size|filesizeformat }}</td>
+                                        <td>
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-clock me-1"></i>Pending Analysis
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <form method="post" action="{% url 'audio_app:analyze_audio' %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="audio_file_id" value="{{ audio_file.id }}">
+                                                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Analyze this audio file?')">
+                                                    <i class="fas fa-play me-1"></i>Analyze
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card text-center p-5">
+                    <div class="card-body">
+                        <i class="fas fa-inbox fa-4x text-muted mb-4"></i>
+                        <h3 class="card-title mb-3">No Audio Files Found</h3>
+                        <p class="card-text text-muted mb-4">
+                            You haven't uploaded any audio files yet. Upload your first audio file to get started with analysis.
+                        </p>
+                        <a href="{% url 'audio_app:home' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload me-2"></i>Upload Audio File
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Analysis Instructions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Analysis Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-cogs me-2"></i>Features Extracted</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Amplitude Envelope</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Zero Crossing Rate</li>
+                                <li><i class="fas fa-check text-success me-2"></i>RMS Energy</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Spectral Centroid</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Spectral Bandwidth</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Spectral Rolloff</li>
+                                <li><i class="fas fa-check text-success me-2"></i>MFCC Coefficients</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Analysis Insights</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-chart-line text-info me-2"></i>Audio characteristics</li>
+                                <li><i class="fas fa-music text-info me-2"></i>Genre classification hints</li>
+                                <li><i class="fas fa-volume-up text-info me-2"></i>Loudness analysis</li>
+                                <li><i class="fas fa-wave-square text-info me-2"></i>Frequency content</li>
+                                <li><i class="fas fa-brain text-info me-2"></i>ML-ready features</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

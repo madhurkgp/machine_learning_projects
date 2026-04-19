@@ -1,0 +1,197 @@
+{% extends 'audio_app/base.html' %}
+
+{% block title %}Audio Processing ML - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-4 fade-in">
+            <i class="fas fa-wave-square me-3"></i>Audio Processing with Machine Learning
+        </h1>
+        <p class="lead mb-4 fade-in">
+            Upload your audio files and extract advanced features using state-of-the-art ML techniques
+        </p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card fade-in">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-4">
+                            <i class="fas fa-upload me-2"></i>Upload Audio File
+                        </h5>
+                        <form method="post" enctype="multipart/form-data" action="{% url 'audio_app:upload_audio' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">File Name</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.name.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-4">
+                                <label for="{{ form.audio_file.id_for_label }}" class="form-label">Audio File</label>
+                                {{ form.audio_file }}
+                                {% if form.audio_file.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.audio_file.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text mt-2">
+                                    Supported formats: WAV, MP3, FLAC, M4A, OGG (Max size: 50MB)
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-upload me-2"></i>Upload & Analyze
+                                </button>
+                                <button type="button" class="btn btn-success btn-lg" onclick="loadSampleData()">
+                                    <i class="fas fa-play me-2"></i>Load Sample Data
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">Audio Features We Extract</h2>
+            <p class="text-muted">Advanced signal processing and machine learning techniques</p>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4 fade-in">
+                <div class="feature-icon mx-auto">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5 class="card-title">Time Domain Features</h5>
+                <p class="card-text">Amplitude Envelope, Zero Crossing Rate, RMS Energy</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4 fade-in">
+                <div class="feature-icon mx-auto">
+                    <i class="fas fa-wave-square"></i>
+                </div>
+                <h5 class="card-title">Frequency Domain Features</h5>
+                <p class="card-text">Spectral Centroid, Bandwidth, Rolloff</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4 fade-in">
+                <div class="feature-icon mx-auto">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h5 class="card-title">MFCC Features</h5>
+                <p class="card-text">Mel-Frequency Cepstral Coefficients with derivatives</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Analyses -->
+{% if recent_analyses %}
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4">Recent Analyses</h3>
+            <div class="row g-4">
+                {% for analysis in recent_analyses %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 fade-in">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ analysis.audio_file.name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ analysis.analysis_date|date:"M d, Y H:i" }}
+                                </small>
+                            </p>
+                            <div class="row text-center mb-3">
+                                <div class="col-4">
+                                    <div class="stats-value">{{ analysis.zero_crossing_rate_avg|floatformat:3 }}</div>
+                                    <small class="text-muted">ZCR</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stats-value">{{ analysis.rms_energy_avg|floatformat:3 }}</div>
+                                    <small class="text-muted">RMS</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stats-value">{{ analysis.spectral_centroid_avg|floatformat:0 }}</div>
+                                    <small class="text-muted">Centroid</small>
+                                </div>
+                            </div>
+                            <a href="{% url 'audio_app:analysis_results' analysis.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-chart-bar me-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Processing Audio...</h5>
+                <p class="text-muted">Please wait while we analyze your audio file</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function loadSampleData() {
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+    
+    fetch('{% url "audio_app:load_sample_data" %}')
+        .then(response => response.json())
+        .then(data => {
+            modal.hide();
+            if (data.success) {
+                window.location.href = '{% url "audio_app:analysis_results" analysis_id=999 %}'.replace('999', data.analysis_id);
+            } else {
+                alert('Error loading sample data: ' + data.message);
+            }
+        })
+        .catch(error => {
+            modal.hide();
+            alert('Error: ' + error.message);
+        });
+}
+
+// Add fade-in animation to elements
+document.addEventListener('DOMContentLoaded', function() {
+    const elements = document.querySelectorAll('.fade-in');
+    elements.forEach((el, index) => {
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}
