@@ -1,0 +1,159 @@
+{% extends 'speech_analyzer/base.html' %}
+
+{% block title %}Analyzing Audio - Speech Analyzer{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card fade-in">
+            <div class="card-body p-5">
+                <div class="text-center">
+                    <div class="feature-icon primary mx-auto mb-4">
+                        <i class="bi bi-soundwave"></i>
+                    </div>
+                    <h2 class="mb-4">Analyzing Audio File</h2>
+                    
+                    <div class="mb-4">
+                        <p class="text-muted mb-3">Processing: <strong>{{ audio_analysis.audio_file.name }}</strong></p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" 
+                                 style="width: 100%">
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted">
+                            <i class="bi bi-hourglass-split me-2"></i>
+                            Please wait while we analyze your audio...
+                        </p>
+                    </div>
+
+                    <!-- Analysis Steps -->
+                    <div class="row text-start mt-5">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="feature-icon success me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="bi bi-check"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Audio Loaded</h6>
+                                    <small class="text-muted">File successfully uploaded</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="feature-icon primary me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="bi bi-mic"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Speech Recognition</h6>
+                                    <small class="text-muted">Converting speech to text</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="feature-icon danger me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                                    <i class="bi bi-graph-up"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Text Analysis</h6>
+                                    <small class="text-muted">Analyzing patterns and insights</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto-submit Form -->
+                    <form method="post" id="analysisForm" class="mt-4">
+                        {% csrf_token %}
+                        <p class="text-muted small mb-3">
+                            Analysis will begin automatically in a moment...
+                        </p>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary" id="startAnalysisBtn">
+                                <i class="bi bi-play-circle me-2"></i>Start Analysis Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Info Cards -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card fade-in">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-info-circle me-2"></i>What's happening?
+                </h5>
+                <ul class="mb-0">
+                    <li>Your audio file is being processed using advanced speech recognition</li>
+                    <li>We're extracting spoken words and converting them to text</li>
+                    <li>Text analysis will provide insights about speaking patterns</li>
+                    <li>Results will include word frequency and speaking speed metrics</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card fade-in">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-clock-history me-2"></i>Processing Time
+                </h5>
+                <p class="mb-0">
+                    Analysis typically takes 10-30 seconds depending on:
+                </p>
+                <ul class="mb-0">
+                    <li>Audio file length</li>
+                    <li>Audio quality and clarity</li>
+                    <li>Background noise levels</li>
+                    <li>Speech complexity</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-submit form after 2 seconds
+    setTimeout(function() {
+        const form = document.getElementById('analysisForm');
+        const btn = document.getElementById('startAnalysisBtn');
+        
+        // Update button text
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Starting analysis...';
+        btn.disabled = true;
+        
+        // Submit form
+        form.submit();
+    }, 2000);
+    
+    // Manual submission handler
+    document.getElementById('analysisForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('startAnalysisBtn');
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Analyzing...';
+        btn.disabled = true;
+    });
+    
+    // Add some animation to progress bar
+    setTimeout(function() {
+        const progressBar = document.querySelector('.progress-bar');
+        progressBar.style.width = '75%';
+    }, 500);
+    
+    setTimeout(function() {
+        const progressBar = document.querySelector('.progress-bar');
+        progressBar.style.width = '90%';
+    }, 1500);
+</script>
+{% endblock %}

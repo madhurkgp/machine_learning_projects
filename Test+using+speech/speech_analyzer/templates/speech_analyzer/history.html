@@ -1,0 +1,220 @@
+{% extends 'speech_analyzer/base.html' %}
+
+{% block title %}Analysis History - Speech Analyzer{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="hero-section">
+    <h1 class="hero-title">Analysis History</h1>
+    <p class="hero-subtitle">View and manage your previous audio analyses</p>
+</div>
+
+{% if page_obj %}
+    <!-- Analyses List -->
+    <div class="row">
+        <div class="col-12">
+            {% for analysis in page_obj %}
+                <div class="card fade-in mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="feature-icon primary me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                                        <i class="bi bi-file-earmark-audio"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1">{{ analysis.audio_file.name|truncatechars:50 }}</h5>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            {{ analysis.created_at|date:"F j, Y, g:i a" }}
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                {% if analysis.transcribed_text %}
+                                    <p class="mb-2 text-muted">
+                                        {{ analysis.transcribed_text|truncatechars:100 }}
+                                    </p>
+                                {% endif %}
+                                
+                                <div class="row text-center">
+                                    <div class="col-3">
+                                        <small class="text-muted d-block">Words</small>
+                                        <strong>{{ analysis.word_count }}</strong>
+                                    </div>
+                                    <div class="col-3">
+                                        <small class="text-muted d-block">Unique</small>
+                                        <strong>{{ analysis.unique_words }}</strong>
+                                    </div>
+                                    <div class="col-3">
+                                        <small class="text-muted d-block">WPM</small>
+                                        <strong>{{ analysis.words_per_minute|floatformat:1 }}</strong>
+                                    </div>
+                                    <div class="col-3">
+                                        <small class="text-muted d-block">Duration</small>
+                                        <strong>{{ analysis.audio_duration|floatformat:1 }}m</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'speech_analyzer:analysis_results' analysis.pk %}" 
+                                       class="btn btn-primary btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm" 
+                                            onclick="deleteAnalysis({{ analysis.pk }})">
+                                        <i class="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
+{% else %}
+    <!-- Empty State -->
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card fade-in text-center">
+                <div class="card-body p-5">
+                    <div class="feature-icon danger mx-auto mb-4">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h3 class="mb-3">No Analyses Yet</h3>
+                    <p class="text-muted mb-4">
+                        You haven't analyzed any audio files yet. Start by uploading your first audio file to see the magic happen!
+                    </p>
+                    <a href="{% url 'speech_analyzer:home' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Analyze Your First Audio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Quick Stats -->
+{% if page_obj %}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card fade-in">
+                <div class="card-body text-center">
+                    <div class="stats-number">{{ page_obj.paginator.count }}</div>
+                    <div class="stats-label">Total Analyses</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card fade-in">
+                <div class="card-body text-center">
+                    <div class="stats-number">
+                        {% if page_obj %}
+                            {% widthratio page_obj.object_list|length 1 1 %}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div class="stats-label">This Page</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card fade-in">
+                <div class="card-body text-center">
+                    <div class="stats-number">
+                        {% if page_obj %}
+                            {{ page_obj.number }}
+                        {% else %}
+                            1
+                        {% endif %}
+                    </div>
+                    <div class="stats-label">Current Page</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card fade-in">
+                <div class="card-body text-center">
+                    <div class="stats-number">
+                        {% if page_obj %}
+                            {{ page_obj.paginator.num_pages }}
+                        {% else %}
+                            1
+                        {% endif %}
+                    </div>
+                    <div class="stats-label">Total Pages</div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Delete analysis with confirmation
+    function deleteAnalysis(pk) {
+        if (confirm('Are you sure you want to delete this analysis? This action cannot be undone.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/delete/${pk}/`;
+            form.innerHTML = '{% csrf_token %}';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    // Add hover effects to cards
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
+</script>
+{% endblock %}

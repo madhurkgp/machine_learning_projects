@@ -1,0 +1,153 @@
+{% extends 'speech_analyzer/base.html' %}
+
+{% block title %}Home - Speech Analyzer{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <h1 class="hero-title">Speech Analyzer</h1>
+    <p class="hero-subtitle">Transform your audio into insights with advanced speech recognition and text analysis</p>
+</div>
+
+<!-- Upload Section -->
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card fade-in">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="feature-icon primary mx-auto">
+                        <i class="bi bi-cloud-upload"></i>
+                    </div>
+                    <h2 class="mb-3">Upload Audio File</h2>
+                    <p class="text-muted">Support for WAV, MP3, FLAC, M4A, OGG formats</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="{{ form.audio_file.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-file-earmark-audio me-2"></i>Select Audio File
+                        </label>
+                        {{ form.audio_file }}
+                        {% if form.audio_file.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.audio_file.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">{{ form.audio_file.help_text }}</small>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-play-circle me-2"></i>Analyze Audio
+                        </button>
+                    </div>
+                </form>
+
+                <!-- File Preview -->
+                <div id="filePreview" class="mt-4" style="display: none;">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <span id="fileName"></span> selected
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 fade-in">
+            <div class="card-body text-center">
+                <div class="feature-icon success mx-auto">
+                    <i class="bi bi-mic"></i>
+                </div>
+                <h4 class="mb-3">Speech Recognition</h4>
+                <p class="text-muted">Advanced Google Speech Recognition API for accurate audio transcription</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 fade-in">
+            <div class="card-body text-center">
+                <div class="feature-icon primary mx-auto">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h4 class="mb-3">Text Analysis</h4>
+                <p class="text-muted">Comprehensive analysis including word count, frequency, and speaking speed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 fade-in">
+            <div class="card-body text-center">
+                <div class="feature-icon danger mx-auto">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <h4 class="mb-3">Smart Insights</h4>
+                <p class="text-muted">AI-powered insights about vocabulary diversity and speaking patterns</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sample Data Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card fade-in">
+            <div class="card-body text-center">
+                <h4 class="mb-3">Try with Sample Data</h4>
+                <p class="text-muted mb-4">Experience the features with our pre-loaded sample audio file</p>
+                <button onclick="loadSampleData()" class="btn btn-outline-primary">
+                    <i class="bi bi-play-circle me-2"></i>Load Sample Audio
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // File upload preview
+    document.getElementById('{{ form.audio_file.id_for_label }}').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+        
+        if (file) {
+            fileName.textContent = file.name;
+            preview.style.display = 'block';
+            
+            // Validate file size
+            const maxSize = 25 * 1024 * 1024; // 25MB
+            if (file.size > maxSize) {
+                alert('File size exceeds 25MB limit. Please choose a smaller file.');
+                e.target.value = '';
+                preview.style.display = 'none';
+            }
+        } else {
+            preview.style.display = 'none';
+        }
+    });
+    
+    // Form submission with loading state
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing...';
+        submitBtn.disabled = true;
+        
+        // Reset button after 10 seconds (in case of network issues)
+        setTimeout(function() {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }, 10000);
+    });
+</script>
+{% endblock %}
