@@ -1,0 +1,287 @@
+{% extends 'audio_classifier/base.html' %}
+
+{% block title %}Sample Data{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-lg-8 mx-auto">
+        <!-- Header -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-music-note-list me-2"></i>Sample Audio Data</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">Test the audio classification system with pre-loaded sample audio files from the UrbanSound8K dataset.</p>
+            </div>
+        </div>
+
+        <!-- Sample Selection Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-hand-index me-2"></i>Select Sample Audio</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.sample_type.id_for_label }}" class="form-label fw-bold">
+                            Choose Audio Type:
+                        </label>
+                        {{ form.sample_type }}
+                        {% if form.sample_type.errors %}
+                            <div class="text-danger mt-1">
+                                {{ form.sample_type.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Select a sample audio file to test the classification system.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>Classify Sample
+                        </button>
+                        <a href="{% url 'audio_classifier:home' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-upload me-2"></i>Upload Your Own
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Available Samples -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-collection me-2"></i>Available Sample Files</h5>
+            </div>
+            <div class="card-body">
+                {% if sample_files %}
+                <div class="row">
+                    {% for sample in sample_files %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 border-2 {% if sample.exists %}border-success{% else %}border-secondary{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-file-earmark-music text-primary me-2 fs-4"></i>
+                                    <div>
+                                        <h6 class="mb-0">{{ sample.description }}</h6>
+                                        <small class="text-muted">Expected: {{ sample.expected_class|title }}</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge {% if sample.exists %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if sample.exists %}
+                                            <i class="bi bi-check-circle me-1"></i>Available
+                                        {% else %}
+                                            <i class="bi bi-x-circle me-1"></i>Not Available
+                                        {% endif %}
+                                    </span>
+                                    {% if sample.exists %}
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="selectSample('{{ sample.name }}')">
+                                            <i class="bi bi-hand-index"></i> Select
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-exclamation-triangle display-4 text-warning mb-3"></i>
+                    <h5>No Sample Files Available</h5>
+                    <p class="text-muted">Sample audio files are not currently available. Please upload your own audio files for testing.</p>
+                    <a href="{% url 'audio_classifier:home' %}" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>Upload Audio File
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Dataset Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>About UrbanSound8K Dataset</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="mb-3">
+                            The UrbanSound8K dataset contains 8,732 labeled sound excerpts (≤4s) of urban sounds 
+                            from 10 classes: air conditioner, car horn, children playing, dog bark, drilling, 
+                            engine idling, gun shot, jackhammer, siren, and street music.
+                        </p>
+                        <div class="row">
+                            <div class="col-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>8,732 audio files</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>10 audio classes</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>4-second maximum duration</li>
+                                </ul>
+                            </div>
+                            <div class="col-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>Multiple formats</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>High quality audio</li>
+                                    <li><i class="bi bi-check-circle text-success me-2"></i>Well-labeled data</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light p-3 rounded">
+                            <h6>Quick Stats</h6>
+                            <div class="mb-2">
+                                <small class="text-muted">Total Classes:</small>
+                                <strong class="float-end">10</strong>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Total Files:</small>
+                                <strong class="float-end">8,732</strong>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Avg Duration:</small>
+                                <strong class="float-end">~3s</strong>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Sample Rate:</small>
+                                <strong class="float-end">44.1 kHz</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classification Classes -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-tags me-2"></i>Supported Audio Classes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-wind text-primary fs-4 me-3"></i>
+                            <div>
+                                <strong>Air Conditioner</strong>
+                                <div class="text-muted small">Mechanical cooling sounds</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-megaphone text-danger fs-4 me-3"></i>
+                            <div>
+                                <strong>Car Horn</strong>
+                                <div class="text-muted small">Vehicle warning sounds</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-people text-success fs-4 me-3"></i>
+                            <div>
+                                <strong>Children Playing</strong>
+                                <div class="text-muted small">Kids playing sounds</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-emoji-smile text-warning fs-4 me-3"></i>
+                            <div>
+                                <strong>Dog Bark</strong>
+                                <div class="text-muted small">Canine vocalizations</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-tools text-info fs-4 me-3"></i>
+                            <div>
+                                <strong>Drilling</strong>
+                                <div class="text-muted small">Construction sounds</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-gear text-secondary fs-4 me-3"></i>
+                            <div>
+                                <strong>Engine Idling</strong>
+                                <div class="text-muted small">Vehicle engine sounds</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-exclamation-triangle text-dark fs-4 me-3"></i>
+                            <div>
+                                <strong>Gun Shot</strong>
+                                <div class="text-muted small">Firearm discharge sounds</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-hammer text-primary fs-4 me-3"></i>
+                            <div>
+                                <strong>Jackhammer</strong>
+                                <div class="text-muted small">Heavy machinery</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-volume-up text-danger fs-4 me-3"></i>
+                            <div>
+                                <strong>Siren</strong>
+                                <div class="text-muted small">Emergency vehicle sounds</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-music-note text-success fs-4 me-3"></i>
+                            <div>
+                                <strong>Street Music</strong>
+                                <div class="text-muted small">Musical performances</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-select sample when clicking the select button
+function selectSample(sampleName) {
+    const selectElement = document.getElementById('{{ form.sample_type.id_for_label }}');
+    if (selectElement) {
+        // Convert sample name to form value
+        const formValue = sampleName.replace('_sample', '');
+        selectElement.value = formValue;
+        
+        // Scroll to form
+        selectElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Highlight the select element
+        selectElement.style.borderColor = '#28a745';
+        selectElement.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+        
+        setTimeout(() => {
+            selectElement.style.borderColor = '';
+            selectElement.style.boxShadow = '';
+        }, 2000);
+    }
+}
+
+// Add hover effects to sample cards
+document.addEventListener('DOMContentLoaded', function() {
+    const sampleCards = document.querySelectorAll('.card.h-100');
+    sampleCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

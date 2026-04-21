@@ -1,0 +1,208 @@
+{% extends 'audio_classifier/base.html' %}
+
+{% block title %}Classification Result - {{ classification.filename }}{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-lg-10 mx-auto">
+        <!-- Result Header -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Classification Complete</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4><i class="bi bi-file-earmark-music text-primary me-2"></i>{{ classification.filename }}</h4>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-clock me-1"></i>Processed on {{ classification.processed_at|date:"F d, Y H:i" }}
+                        </p>
+                        <div class="d-flex gap-3">
+                            <small><i class="bi bi-hdd me-1"></i>{{ classification.get_formatted_file_size }}</small>
+                            <small><i class="bi bi-stopwatch me-1"></i>{{ classification.duration|floatformat:2 }}s</small>
+                            <small><i class="bi bi-lightning me-1"></i>{{ classification.processing_time|floatformat:3 }}s</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'audio_classifier:download_results' classification.pk %}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-download me-2"></i>Download Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Prediction -->
+        <div class="result-card mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Predicted Class</h5>
+                    <h2 class="display-6 fw-bold text-primary">
+                        {{ classification.predicted_class|title }}
+                    </h2>
+                    <p class="text-muted">Most likely audio classification</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-3">Confidence Score</h5>
+                    <div class="mb-3">
+                        <h1 class="display-6 fw-bold {% if classification.confidence_score > 0.7 %}confidence-high{% elif classification.confidence_score > 0.4 %}confidence-medium{% else %}confidence-low{% endif %}">
+                            {{ classification.confidence_score|floatformat:2 }}
+                        </h1>
+                    </div>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar" 
+                             style="width: {{ classification.confidence_score|mul:100 }}%"
+                             role="progressbar">
+                            {{ classification.confidence_score|mul:100|floatformat:1 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Probabilities -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>All Class Probabilities</h5>
+            </div>
+            <div class="card-body">
+                {% for result in results %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-medium">{{ result.class_name|title }}</span>
+                        <span class="badge bg-primary">{{ result.probability|floatformat:3 }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" 
+                             style="width: {{ result.probability|mul:100 }}%"
+                             role="progressbar">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Audio Features -->
+        {% if classification.mfcc_features %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Extracted Audio Features</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>MFCC Features</h6>
+                        <div class="bg-light p-3 rounded">
+                            <small class="font-monospace">
+                                {% for feature in classification.mfcc_features %}
+                                    {{ feature|floatformat:4 }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </small>
+                        </div>
+                        <p class="text-muted mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Mel-Frequency Cepstral Coefficients ({{ classification.mfcc_features|length }} dimensions)
+                        </p>
+                    </div>
+                    {% if classification.zcr_features %}
+                    <div class="col-md-6">
+                        <h6>Zero Crossing Rate</h6>
+                        <div class="bg-light p-3 rounded">
+                            <small class="font-monospace">
+                                {% for feature in classification.zcr_features %}
+                                    {{ feature|floatformat:4 }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </small>
+                        </div>
+                        <p class="text-muted mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Rate at which signal changes from positive to negative
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'audio_classifier:home' %}" class="btn btn-primary btn-lg w-100 mb-2 mb-md-0">
+                            <i class="bi bi-plus-circle me-2"></i>Classify Another Audio
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'audio_classifier:classification_history' %}" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="bi bi-clock-history me-2"></i>View History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audio Player (if supported) -->
+        {% if classification.audio_file %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-play-circle me-2"></i>Audio Player</h5>
+            </div>
+            <div class="card-body text-center">
+                <audio controls class="w-100">
+                    <source src="{{ classification.audio_file.url }}" type="audio/wav">
+                    <source src="{{ classification.audio_file.url }}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate progress bars on load
+window.addEventListener('load', function() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach((bar, index) => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease-in-out';
+            bar.style.width = width;
+        }, index * 100);
+    });
+});
+
+// Copy results to clipboard
+function copyResults() {
+    const results = {
+        filename: '{{ classification.filename }}',
+        predicted_class: '{{ classification.predicted_class }}',
+        confidence: {{ classification.confidence_score }},
+        processing_time: {{ classification.processing_time }}
+    };
+    
+    navigator.clipboard.writeText(JSON.stringify(results, null, 2)).then(() => {
+        alert('Results copied to clipboard!');
+    });
+}
+
+// Add copy button (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.card-header h5');
+    if (header) {
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'btn btn-sm btn-outline-light float-end';
+        copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+        copyBtn.onclick = copyResults;
+        header.parentElement.appendChild(copyBtn);
+    }
+});
+</script>
+{% endblock %}

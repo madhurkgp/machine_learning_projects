@@ -1,0 +1,220 @@
+{% extends 'audio_classifier/base.html' %}
+
+{% block title %}Audio Classification - Home{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-lg-8 mx-auto">
+        <!-- Header Card -->
+        <div class="card mb-4">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-soundwave display-1 text-primary mb-3"></i>
+                <h1 class="display-4 fw-bold">Audio Classification System</h1>
+                <p class="lead text-muted">Upload an audio file to classify it using advanced neural networks</p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <i class="bi bi-cpu text-primary fs-3 mb-2"></i>
+                            <h6>Neural Networks</h6>
+                            <small class="text-muted">Deep learning models for accurate classification</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <i class="bi bi-graph-up text-success fs-3 mb-2"></i>
+                            <h6>MFCC Features</h6>
+                            <small class="text-muted">Advanced audio feature extraction</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <i class="bi bi-lightning text-warning fs-3 mb-2"></i>
+                            <h6>Real-time</h6>
+                            <small class="text-muted">Fast processing and instant results</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Upload Audio File</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="upload-area mb-4">
+                        <i class="bi bi-cloud-upload display-4 text-primary mb-3"></i>
+                        <h5>Drag & Drop your audio file here</h5>
+                        <p class="text-muted">or click to browse</p>
+                        <small class="text-muted">Supported formats: WAV, MP3, FLAC, M4A, OGG (Max 25MB)</small>
+                        {{ form.audio_file }}
+                    </div>
+                    
+                    {% if form.audio_file.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.audio_file.errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>Classify Audio
+                        </button>
+                        <a href="{% url 'audio_classifier:sample_data' %}" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-music-note-list me-2"></i>Try Sample Data
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Classifications -->
+        {% if recent_classifications %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Classifications</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Predicted Class</th>
+                                <th>Confidence</th>
+                                <th>Processing Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for classification in recent_classifications %}
+                            <tr>
+                                <td>
+                                    <i class="bi bi-file-earmark-music text-primary me-2"></i>
+                                    {{ classification.filename|truncatechars:30 }}
+                                </td>
+                                <td>
+                                    <span class="badge badge-gradient">{{ classification.predicted_class }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress me-2" style="width: 100px;">
+                                            <div class="progress-bar" style="width: {{ classification.confidence_score|mul:100 }}%"></div>
+                                        </div>
+                                        <small>{{ classification.confidence_score|floatformat:2 }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small>{{ classification.processing_time|floatformat:3 }}s</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'audio_classifier:classification_result' classification.pk %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'audio_classifier:classification_history' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-right-circle me-2"></i>View All History
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Supported Classes -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-tags me-2"></i>Supported Audio Classes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-wind text-primary me-2"></i>Air Conditioner</span>
+                                <span class="badge bg-primary rounded-pill">AC</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-megaphone text-danger me-2"></i>Car Horn</span>
+                                <span class="badge bg-danger rounded-pill">Horn</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-people text-success me-2"></i>Children Playing</span>
+                                <span class="badge bg-success rounded-pill">Kids</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-emoji-smile text-warning me-2"></i>Dog Bark</span>
+                                <span class="badge bg-warning rounded-pill">Dog</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-tools text-info me-2"></i>Drilling</span>
+                                <span class="badge bg-info rounded-pill">Drill</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-gear text-secondary me-2"></i>Engine Idling</span>
+                                <span class="badge bg-secondary rounded-pill">Engine</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-exclamation-triangle text-dark me-2"></i>Gun Shot</span>
+                                <span class="badge bg-dark rounded-pill">Gun</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-hammer text-primary me-2"></i>Jackhammer</span>
+                                <span class="badge bg-primary rounded-pill">Hammer</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-volume-up text-danger me-2"></i>Siren</span>
+                                <span class="badge bg-danger rounded-pill">Siren</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-music-note text-success me-2"></i>Street Music</span>
+                                <span class="badge bg-success rounded-pill">Music</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// File name display
+document.getElementById('audio_file_input').addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name || 'Choose audio file...';
+    const uploadText = document.querySelector('.upload-area h5');
+    if (uploadText) {
+        uploadText.textContent = fileName;
+    }
+});
+
+// Progress bar animation
+window.addEventListener('load', function() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.transition = 'width 1s ease-in-out';
+            bar.style.width = width;
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

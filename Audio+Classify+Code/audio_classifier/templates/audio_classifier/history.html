@@ -1,0 +1,264 @@
+{% extends 'audio_classifier/base.html' %}
+
+{% block title %}Classification History{% endblock %}
+
+{% block content %}
+<div class="row fade-in">
+    <div class="col-lg-10 mx-auto">
+        <!-- Header -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Classification History</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">View all audio classifications performed on this system.</p>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">{{ page_obj.paginator.count }}</h3>
+                        <p class="text-muted mb-0">Total Classifications</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">
+                            {% widthratio page_obj.paginator.count 10 1 %}
+                        </h3>
+                        <p class="text-muted mb-0">This Page</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">{{ page_obj.number }}</h3>
+                        <p class="text-muted mb-0">Current Page</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">{{ page_obj.paginator.num_pages }}</h3>
+                        <p class="text-muted mb-0">Total Pages</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card">
+            <div class="card-body">
+                {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><i class="bi bi-file-earmark-music me-1"></i>Filename</th>
+                                <th><i class="bi bi-tags me-1"></i>Predicted Class</th>
+                                <th><i class="bi bi-speedometer2 me-1"></i>Confidence</th>
+                                <th><i class="bi bi-hdd me-1"></i>Size</th>
+                                <th><i class="bi bi-stopwatch me-1"></i>Duration</th>
+                                <th><i class="bi bi-lightning me-1"></i>Process Time</th>
+                                <th><i class="bi bi-calendar me-1"></i>Date</th>
+                                <th><i class="bi bi-gear me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for classification in page_obj %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-music text-primary me-2"></i>
+                                        <div>
+                                            <div class="fw-medium">{{ classification.filename|truncatechars:25 }}</div>
+                                            <small class="text-muted">{{ classification.get_file_extension|upper }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if classification.predicted_class %}
+                                        <span class="badge badge-gradient">{{ classification.predicted_class|title }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Processing...</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if classification.confidence_score %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress me-2" style="width: 60px; height: 8px;">
+                                                <div class="progress-bar" 
+                                                     style="width: {{ classification.confidence_score|mul:100 }}%"></div>
+                                            </div>
+                                            <small>{{ classification.confidence_score|floatformat:2 }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ classification.get_formatted_file_size }}</small>
+                                </td>
+                                <td>
+                                    {% if classification.duration %}
+                                        <small>{{ classification.duration|floatformat:1 }}s</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if classification.processing_time %}
+                                        <small>{{ classification.processing_time|floatformat:3 }}s</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ classification.created_at|date:"M d, H:i" }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'audio_classifier:classification_result' classification.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="View Results">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if classification.predicted_class %}
+                                        <a href="{% url 'audio_classifier:download_results' classification.pk %}" 
+                                           class="btn btn-sm btn-outline-success" title="Download Results">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Classification history pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                    <i class="bi bi-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+                    <h4>No Classifications Yet</h4>
+                    <p class="text-muted">Start by uploading an audio file for classification.</p>
+                    <a href="{% url 'audio_classifier:home' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Classify Audio
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="{% url 'audio_classifier:home' %}" class="btn btn-primary w-100 mb-2 mb-md-0">
+                            <i class="bi bi-plus-circle me-2"></i>New Classification
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'audio_classifier:sample_data' %}" class="btn btn-secondary w-100 mb-2 mb-md-0">
+                            <i class="bi bi-music-note-list me-2"></i>Try Sample Data
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'admin:audio_classifier_audioclassification_changelist' %}" 
+                           class="btn btn-outline-primary w-100">
+                            <i class="bi bi-gear me-2"></i>Admin Panel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Table row hover effects
+document.addEventListener('DOMContentLoaded', function() {
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
+
+// Search functionality (optional enhancement)
+function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toUpperCase();
+    const table = document.querySelector('table');
+    const rows = table.getElementsByTagName('tr');
+    
+    for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        let found = false;
+        
+        for (let j = 0; j < cells.length; j++) {
+            const cell = cells[j];
+            if (cell) {
+                const textValue = cell.textContent || cell.innerText;
+                if (textValue.toUpperCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        
+        rows[i].style.display = found ? '' : 'none';
+    }
+}
+</script>
+{% endblock %}
