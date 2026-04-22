@@ -1,0 +1,216 @@
+{% extends 'voice_assistant/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-card">
+                <div class="text-center mb-4">
+                    <i class="bi bi-question-circle" style="font-size: 3rem; color: #667eea;"></i>
+                    <h2 class="mt-3">Help & Documentation</h2>
+                    <p class="text-secondary">Learn how to use Voice Assistant Dave effectively</p>
+                </div>
+                
+                <!-- Getting Started -->
+                <div class="mb-5">
+                    <h4 class="mb-3">
+                        <i class="bi bi-play-circle"></i> Getting Started
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="command-suggestion">
+                                <h6><i class="bi bi-1-circle"></i> Type or Speak</h6>
+                                <p class="mb-0 small">Enter your command in the text field or click the microphone button</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="command-suggestion">
+                                <h6><i class="bi bi-2-circle"></i> Get Response</h6>
+                                <p class="mb-0 small">Dave will process your command and provide a response</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="command-suggestion">
+                                <h6><i class="bi bi-3-circle"></i> View History</h6>
+                                <p class="mb-0 small">Check your command history and analytics anytime</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="command-suggestion">
+                                <h6><i class="bi bi-4-circle"></i> Explore Features</h6>
+                                <p class="mb-0 small">Try different commands and discover what Dave can do</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Available Commands -->
+                <div class="mb-5">
+                    <h4 class="mb-3">
+                        <i class="bi bi-mic"></i> Available Commands
+                    </h4>
+                    <div class="accordion" id="commandsAccordion">
+                        {% for suggestion in command_suggestions %}
+                        {% with command_parts=suggestion|split:" - " %}
+                        <div class="accordion-item bg-dark text-white">
+                            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse{{ forloop.counter }}">
+                                    <i class="bi bi-chevron-right me-2"></i>
+                                    {{ command_parts.0 }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" 
+                                 data-bs-parent="#commandsAccordion">
+                                <div class="accordion-body">
+                                    <p class="mb-2">{{ command_parts.1 }}</p>
+                                    <div class="bg-secondary bg-opacity-25 p-2 rounded">
+                                        <code>{{ command_parts.0 }}</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Features -->
+                <div class="mb-5">
+                    <h4 class="mb-3">
+                        <i class="bi bi-stars"></i> Key Features
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="bi bi-search" style="font-size: 2rem; color: #667eea;"></i>
+                                <h6 class="mt-2">Wikipedia Search</h6>
+                                <p class="small text-secondary">Search Wikipedia for any topic</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="bi bi-globe" style="font-size: 2rem; color: #13B497;"></i>
+                                <h6 class="mt-2">Web Browsing</h6>
+                                <p class="small text-secondary">Open popular websites instantly</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="bi bi-clock" style="font-size: 2rem; color: #f093fb;"></i>
+                                <h6 class="mt-2">Time Information</h6>
+                                <p class="small text-secondary">Get current time instantly</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="bi bi-cloud-sun" style="font-size: 2rem; color: #59D4A4;"></i>
+                                <h6 class="mt-2">Weather Updates</h6>
+                                <p class="small text-secondary">Check weather information</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="bi bi-music-note" style="font-size: 2rem; color: #f5576c;"></i>
+                                <h6 class="mt-2">Music Control</h6>
+                                <p class="small text-secondary">Play your favorite music</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="bi bi-graph-up" style="font-size: 2rem; color: #764ba2;"></i>
+                                <h6 class="mt-2">Analytics</h6>
+                                <p class="small text-secondary">Track your usage patterns</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Troubleshooting -->
+                <div class="mb-5">
+                    <h4 class="mb-3">
+                        <i class="bi bi-tools"></i> Troubleshooting
+                    </h4>
+                    <div class="accordion" id="troubleshootingAccordion">
+                        <div class="accordion-item bg-dark text-white">
+                            <h2 class="accordion-header" id="troubleshoot1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#trouble1">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Voice commands not working
+                                </button>
+                            </h2>
+                            <div id="trouble1" class="accordion-collapse collapse" 
+                                 data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ul class="mb-0">
+                                        <li>Check microphone permissions in your browser</li>
+                                        <li>Ensure your microphone is connected and working</li>
+                                        <li>Try using text input instead of voice</li>
+                                        <li>Refresh the page and try again</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item bg-dark text-white">
+                            <h2 class="accordion-header" id="troubleshoot2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#trouble2">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Commands not recognized
+                                </button>
+                            </h2>
+                            <div id="trouble2" class="accordion-collapse collapse" 
+                                 data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ul class="mb-0">
+                                        <li>Speak clearly and at a moderate pace</li>
+                                        <li>Ensure you're using the exact trigger phrases</li>
+                                        <li>Check the command list for correct syntax</li>
+                                        <li>Try typing the command instead</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item bg-dark text-white">
+                            <h2 class="accordion-header" id="troubleshoot3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#trouble3">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Slow response times
+                                </button>
+                            </h2>
+                            <div id="trouble3" class="accordion-collapse collapse" 
+                                 data-bs-parent="#troubleshootingAccordion">
+                                <div class="accordion-body">
+                                    <ul class="mb-0">
+                                        <li>Check your internet connection</li>
+                                        <li>Try closing other browser tabs</li>
+                                        <li>Clear browser cache if needed</li>
+                                        <li>Some commands (like Wikipedia) may take longer</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="text-center">
+                    <a href="{% url 'voice_assistant:home' %}" class="btn btn-gradient me-2">
+                        <i class="bi bi-mic"></i> Try Voice Assistant
+                    </a>
+                    <a href="{% url 'voice_assistant:analytics' %}" class="btn btn-outline-light me-2">
+                        <i class="bi bi-graph-up"></i> View Analytics
+                    </a>
+                    <a href="{% url 'voice_assistant:command_history' %}" class="btn btn-outline-light">
+                        <i class="bi bi-clock-history"></i> View History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
